@@ -1107,6 +1107,3329 @@ const _approveV11=approveVolunteer;approveVolunteer=function(id){_approveV11(id)
 
 
 <!-- Firebase real-time sync removed. This version uses the original local application system only. -->
+<!-- =====================================================
+ KUMBH RAKSHAK V12
+ BUS TRACKING + CLEANING ALERTS + VOLUNTEER GUIDE REQUESTS
+ PASTE IMMEDIATELY BEFORE </body>
+====================================================== -->
 
+<style>
+
+.bus-v12-card,
+.clean-v12-card,
+.guide-v12-card{
+  border:1px solid #dfe5ec;
+  border-radius:16px;
+  padding:15px;
+  margin-top:12px;
+  background:#fff;
+}
+
+.bus-v12-live{
+  border-left:5px solid #1769b0;
+  background:#eef6ff;
+}
+
+.clean-v12-card{
+  border-left:5px solid #157638;
+  background:#effaf2;
+}
+
+.guide-v12-card{
+  border-left:5px solid #5b36a8;
+  background:#f5f1ff;
+}
+
+.v12-badge{
+  display:inline-block;
+  padding:5px 10px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:bold;
+  margin-top:8px;
+}
+
+.v12-pending{
+  background:#fff0c7;
+  color:#8a5b00;
+}
+
+.v12-assigned{
+  background:#dce9ff;
+  color:#1455a0;
+}
+
+.v12-done{
+  background:#d9f5df;
+  color:#146a2a;
+}
+
+.bus-stop-v12{
+  background:#f4f6f8;
+  border-radius:10px;
+  padding:10px;
+  margin-top:7px;
+}
+
+</style>
+
+
+<script>
+
+/* =====================================================
+   V12 DATA
+===================================================== */
+
+let v12BusRoutes =
+JSON.parse(
+  localStorage.getItem('kumbhV12BusRoutes')
+)
+||
+[
+  {
+    id:'BUS001',
+    number:'KUMBH-01',
+    name:'Ramkund Circular Route',
+
+    stops:[
+      {
+        name:'Panchavati Bus Stop',
+        lat:19.9905,
+        lon:73.7850
+      },
+
+      {
+        name:'Ramkund Bus Stop',
+        lat:19.9975,
+        lon:73.7898
+      },
+
+      {
+        name:'Tapovan Bus Stop',
+        lat:20.0085,
+        lon:73.8138
+      }
+    ]
+  },
+
+  {
+    id:'BUS002',
+    number:'KUMBH-02',
+    name:'Trimbakeshwar Route',
+
+    stops:[
+      {
+        name:'Nashik Bus Point',
+        lat:19.9905,
+        lon:73.7850
+      },
+
+      {
+        name:'Panchavati Stop',
+        lat:19.991,
+        lon:73.787
+      },
+
+      {
+        name:'Trimbakeshwar Stop',
+        lat:19.9443,
+        lon:73.5287
+      }
+    ]
+  }
+];
+
+
+let v12BusReports =
+JSON.parse(
+  localStorage.getItem('kumbhV12BusReports')
+)
+||
+[];
+
+
+let v12CleaningRequests =
+JSON.parse(
+  localStorage.getItem('kumbhV12CleaningRequests')
+)
+||
+[];
+
+
+let v12BusWatch = null;
+
+
+/* =====================================================
+   SAVE V12
+===================================================== */
+
+function saveV12(){
+
+  localStorage.setItem(
+    'kumbhV12BusRoutes',
+    JSON.stringify(v12BusRoutes)
+  );
+
+  localStorage.setItem(
+    'kumbhV12BusReports',
+    JSON.stringify(v12BusReports)
+  );
+
+  localStorage.setItem(
+    'kumbhV12CleaningRequests',
+    JSON.stringify(v12CleaningRequests)
+  );
+
+}
+
+
+/* =====================================================
+   ADD BUS + GUIDE TO PUBLIC PAGE
+===================================================== */
+
+function injectV12Public(){
+
+  const page =
+  document.getElementById('publicPage');
+
+  if(!page) return;
+
+
+  /* BUS TRACKING */
+
+  if(
+    !document.getElementById(
+      'v12BusTrackingCard'
+    )
+  ){
+
+    const card =
+    document.createElement('div');
+
+    card.className='card';
+
+    card.id='v12BusTrackingCard';
+
+
+    card.innerHTML=`
+
+      <h2>🚌 Live Bus Tracking</h2>
+
+      <p class="map-note">
+
+        Turn on GPS tracking.
+        The system checks whether your
+        movement is close to a registered
+        Kumbh bus route.
+
+      </p>
+
+
+      <div class="grid">
+
+        <button
+          class="blue"
+          onclick="v12StartBusTracking()">
+
+          📡 START BUS TRACKING
+
+        </button>
+
+
+        <button
+          class="gray"
+          onclick="v12StopBusTracking()">
+
+          ⏹ STOP
+
+        </button>
+
+      </div>
+
+
+      <div id="v12BusResult">
+
+        <div class="result info">
+
+          GPS tracking is currently off.
+
+        </div>
+
+      </div>
+
+    `;
+
+
+    const crowdCard =
+    [...page.querySelectorAll('.card')]
+    .find(
+      x =>
+      x.textContent.includes(
+        'Live Crowd Information'
+      )
+    );
+
+
+    if(crowdCard){
+
+      crowdCard.before(card);
+
+    }
+
+    else{
+
+      page.appendChild(card);
+
+    }
+
+  }
+
+
+}
+
+/* =====================================================
+   ADD NEW BUTTONS TO VOLUNTEER DASHBOARD
+===================================================== */
+
+function injectV12Volunteer(){
+
+  const page =
+  document.getElementById('volunteerPage');
+
+  if(!page) return;
+
+
+  const grid =
+  page.querySelector('.card .grid');
+
+  if(!grid) return;
+
+
+  if(
+    document.getElementById(
+      'v12GuideVolunteerButton'
+    )
+  ){
+
+    return;
+
+  }
+
+
+  /* GUIDE REQUESTS */
+
+  const guideButton =
+  document.createElement('button');
+
+  guideButton.id=
+  'v12GuideVolunteerButton';
+
+  guideButton.className=
+  'purple';
+
+  guideButton.innerHTML=
+  '🧭 GUIDE REQUESTS';
+
+  guideButton.onclick=
+  v12ShowGuideRequests;
+
+
+  grid.appendChild(
+    guideButton
+  );
+
+
+  /* CLEANING */
+
+  const cleanButton =
+  document.createElement('button');
+
+  cleanButton.id=
+  'v12CleaningVolunteerButton';
+
+  cleanButton.className=
+  'green';
+
+  cleanButton.innerHTML=
+  '🧹 CLEANING ALERTS';
+
+  cleanButton.onclick=
+  v12ShowCleaningRequests;
+
+
+  grid.appendChild(
+    cleanButton
+  );
+
+
+  /* BUS MANAGEMENT */
+
+  const busButton =
+  document.createElement('button');
+
+  busButton.id=
+  'v12BusVolunteerButton';
+
+  busButton.className=
+  'blue';
+
+  busButton.innerHTML=
+  '🚌 BUS TRACKING';
+
+  busButton.onclick=
+  v12ShowBusManagement;
+
+
+  grid.appendChild(
+    busButton
+  );
+
+}
+
+
+/* =====================================================
+   BUS ROUTE DETECTION
+===================================================== */
+
+function v12FindBusRoute(
+  lat,
+  lon
+){
+
+  let selected =
+  null;
+
+  let minimum =
+  Infinity;
+
+
+  v12BusRoutes.forEach(route=>{
+
+    route.stops.forEach(stop=>{
+
+      const distance =
+      straightDistance(
+        lat,
+        lon,
+        stop.lat,
+        stop.lon
+      );
+
+
+      if(
+        distance < minimum
+      ){
+
+        minimum =
+        distance;
+
+        selected =
+        route;
+
+      }
+
+    });
+
+  });
+
+
+  /*
+    Within 1 km of a registered route stop.
+  */
+
+  if(
+    minimum <= 1
+  ){
+
+    return selected;
+
+  }
+
+
+  return null;
+
+}
+
+
+/* =====================================================
+   GET NEXT STOP
+===================================================== */
+
+function v12GetNextStop(
+  route,
+  lat,
+  lon
+){
+
+  let closestIndex =
+  0;
+
+  let minimum =
+  Infinity;
+
+
+  route.stops.forEach(
+    (stop,index)=>{
+
+      const distance =
+      straightDistance(
+        lat,
+        lon,
+        stop.lat,
+        stop.lon
+      );
+
+
+      if(
+        distance < minimum
+      ){
+
+        minimum =
+        distance;
+
+        closestIndex =
+        index;
+
+      }
+
+    }
+  );
+
+
+  const nextIndex =
+  Math.min(
+    closestIndex + 1,
+    route.stops.length - 1
+  );
+
+
+  return route.stops[nextIndex];
+
+}
+
+
+/* =====================================================
+   START BUS TRACKING
+===================================================== */
+
+function v12StartBusTracking(){
+
+  if(
+    !navigator.geolocation
+  ){
+
+    alert(
+      'GPS is not supported.'
+    );
+
+    return;
+
+  }
+
+
+  if(
+    v12BusWatch !== null
+  ){
+
+    navigator.geolocation.clearWatch(
+      v12BusWatch
+    );
+
+  }
+
+
+  document.getElementById(
+    'v12BusResult'
+  ).innerHTML=`
+
+    <div class="result info">
+
+      📡 Starting live GPS tracking...
+
+    </div>
+
+  `;
+
+
+  v12BusWatch =
+  navigator.geolocation.watchPosition(
+
+    position=>{
+
+      const lat =
+      position.coords.latitude;
+
+      const lon =
+      position.coords.longitude;
+
+
+      userLatitude =
+      lat;
+
+      userLongitude =
+      lon;
+
+
+      const route =
+      v12FindBusRoute(
+        lat,
+        lon
+      );
+
+
+      if(!route){
+
+        document.getElementById(
+          'v12BusResult'
+        ).innerHTML=`
+
+          <div class="result warning">
+
+            🚶 No registered bus route
+            detected nearby.
+
+            <br><br>
+
+            GPS tracking is still active.
+
+          </div>
+
+        `;
+
+        return;
+
+      }
+
+
+      const nextStop =
+      v12GetNextStop(
+        route,
+        lat,
+        lon
+      );
+
+
+      const distance =
+      straightDistance(
+        lat,
+        lon,
+        nextStop.lat,
+        nextStop.lon
+      );
+
+
+      /*
+        Default estimated speed:
+        20 km/h
+      */
+
+      const speed =
+      20;
+
+
+      const eta =
+      Math.max(
+        1,
+        Math.round(
+          distance /
+          speed *
+          60
+        )
+      );
+
+
+      v12BusReports.push({
+
+        id:
+        'BUS'+Date.now(),
+
+        routeId:
+        route.id,
+
+        lat,
+
+        lon,
+
+        time:
+        Date.now()
+
+      });
+
+
+      if(
+        v12BusReports.length > 100
+      ){
+
+        v12BusReports =
+        v12BusReports.slice(-100);
+
+      }
+
+
+      saveV12();
+
+
+      document.getElementById(
+        'v12BusResult'
+      ).innerHTML=`
+
+        <div
+          class="
+          bus-v12-card
+          bus-v12-live">
+
+          <h3>
+
+            🚌 ${route.number}
+
+          </h3>
+
+
+          <b>
+
+            ${route.name}
+
+          </b>
+
+
+          <br><br>
+
+
+          <b>
+            ⏭ Next Stop:
+          </b>
+
+          ${nextStop.name}
+
+
+          <br>
+
+
+          <b>
+            📏 Distance:
+          </b>
+
+          ${formatKm(distance)}
+
+
+          <br>
+
+
+          <b>
+            ⏱ Estimated Arrival:
+          </b>
+
+          ${eta} minutes
+
+
+          <br><br>
+
+
+          <span
+            class="
+            v12-badge
+            v12-done">
+
+            ● LIVE GPS ACTIVE
+
+          </span>
+
+        </div>
+
+      `;
+
+
+    },
+
+
+    error=>{
+
+      const message =
+        window.location.protocol === 'file:'
+        ? '⚠️ GPS needs a secure/local web server. In VS Code use Live Server, then open the http://localhost address.'
+        : (
+            error && error.message
+            ? '❌ GPS error: ' + error.message
+            : '❌ GPS permission required.'
+          );
+
+      document.getElementById(
+        'v12BusResult'
+      ).innerHTML=`
+
+        <div class="result danger">
+
+          ${message}
+
+        </div>
+
+      `;
+
+    },
+
+
+    {
+      enableHighAccuracy:true,
+      maximumAge:3000,
+      timeout:20000
+    }
+
+  );
+
+}
+
+
+/* =====================================================
+   STOP BUS TRACKING
+===================================================== */
+
+function v12StopBusTracking(){
+
+  if(
+    v12BusWatch !== null
+  ){
+
+    navigator.geolocation.clearWatch(
+      v12BusWatch
+    );
+
+    v12BusWatch =
+    null;
+
+  }
+
+
+  document.getElementById(
+    'v12BusResult'
+  ).innerHTML=`
+
+    <div class="result warning">
+
+      ⏹ Bus tracking stopped.
+
+    </div>
+
+  `;
+
+}
+
+
+/* =====================================================
+   AUTOMATIC CLEANING SYSTEM
+===================================================== */
+
+function v12CheckCleaning(
+  place
+){
+
+  const reports =
+  crowdReports
+  .filter(
+    x => x.place === place
+  )
+  .slice(-5);
+
+
+  if(
+    reports.length < 3
+  ){
+
+    return;
+
+  }
+
+
+  const low =
+  reports.filter(
+    x => x.level === 'low'
+  ).length;
+
+
+  /*
+    At least 3 of the last 5
+    reports say LOW CROWD.
+  */
+
+  if(
+    low < 3
+  ){
+
+    return;
+
+  }
+
+
+  const existing =
+  v12CleaningRequests.some(
+    x =>
+    x.place === place &&
+    x.status !== 'COMPLETED'
+  );
+
+
+  if(existing){
+
+    return;
+
+  }
+
+
+  const p =
+  nearestKumbhPlace();
+
+
+  v12CleaningRequests.push({
+
+    id:
+    'CLEAN'+Date.now(),
+
+    place,
+
+    lat:
+    p.lat,
+
+    lon:
+    p.lon,
+
+    reports:
+    low,
+
+    status:
+    'PENDING',
+
+    time:
+    new Date().toLocaleString()
+
+  });
+
+
+  saveV12();
+
+
+}
+
+
+/* =====================================================
+   OVERRIDE CROWD REPORT
+   KEEP EXISTING SYSTEM + ADD CLEANING CHECK
+===================================================== */
+
+const v12OldReportCrowd =
+window.reportCrowd;
+
+
+window.reportCrowd =
+function(level){
+
+  if(
+    typeof v12OldReportCrowd ===
+    'function'
+  ){
+
+    v12OldReportCrowd(level);
+
+  }
+
+
+  const p =
+  nearestKumbhPlace();
+
+
+  setTimeout(
+    ()=>{
+
+      v12CheckCleaning(
+        p.name
+      );
+
+    },
+    100
+  );
+
+};
+
+
+/* =====================================================
+   VOLUNTEER CLEANING REQUESTS
+===================================================== */
+
+function v12ShowCleaningRequests(){
+
+  const active =
+  v12CleaningRequests.filter(
+    x =>
+    x.status !== 'COMPLETED'
+  );
+
+
+  volunteerContent.innerHTML=`
+
+    <div class="card">
+
+      <h2>
+        🧹 Cleaning Alerts
+      </h2>
+
+
+      <p class="map-note">
+
+        Automatically created when
+        multiple recent users report
+        that an area has low crowd.
+
+      </p>
+
+
+      ${
+        active.length
+
+        ?
+
+        active.map(x=>`
+
+          <div class="clean-v12-card">
+
+            <h3>
+              🧹 ${x.place}
+            </h3>
+
+
+            <b>
+              Low crowd reports:
+            </b>
+
+            ${x.reports}
+
+
+            <br>
+
+
+            <b>
+              Time:
+            </b>
+
+            ${x.time}
+
+
+            <br><br>
+
+
+            <span
+              class="
+              v12-badge
+              ${
+                x.status ===
+                'PENDING'
+                ?
+                'v12-pending'
+                :
+                'v12-assigned'
+              }">
+
+              ${x.status}
+
+            </span>
+
+
+            <br>
+
+
+            ${
+              x.status ===
+              'PENDING'
+
+              ?
+
+              `
+
+              <button
+                class="green"
+                onclick="v12AcceptCleaning('${x.id}')">
+
+                🙋 ACCEPT TASK
+
+              </button>
+
+              `
+
+              :
+
+              `
+
+              <button
+                class="blue"
+                onclick="openGoogleDirections(
+                  ${x.lat},
+                  ${x.lon}
+                )">
+
+                🧭 NAVIGATE
+
+              </button>
+
+
+              <button
+                class="green"
+                onclick="v12CompleteCleaning('${x.id}')">
+
+                ✓ MARK CLEANED
+
+              </button>
+
+              `
+
+            }
+
+          </div>
+
+        `).join('')
+
+        :
+
+        `
+
+        <div class="result success">
+
+          🟢 No active cleaning alerts.
+
+        </div>
+
+        `
+
+      }
+
+    </div>
+
+  `;
+
+}
+
+
+function v12AcceptCleaning(id){
+
+  const request =
+  v12CleaningRequests.find(
+    x => x.id === id
+  );
+
+
+  if(!request) return;
+
+
+  request.status =
+  'ASSIGNED';
+
+
+  request.volunteer =
+  volunteerSession?.name ||
+  'Volunteer';
+
+
+  saveV12();
+
+
+  v12ShowCleaningRequests();
+
+}
+
+
+function v12CompleteCleaning(id){
+
+  const request =
+  v12CleaningRequests.find(
+    x => x.id === id
+  );
+
+
+  if(!request) return;
+
+
+  request.status =
+  'COMPLETED';
+
+
+  request.completedAt =
+  new Date().toLocaleString();
+
+
+  saveV12();
+
+
+  v12ShowCleaningRequests();
+
+}
+
+
+/* =====================================================
+   NEW GUIDE REQUEST
+===================================================== */
+
+function v12CreateGuideRequest(){
+
+  if(
+    userLatitude === null
+  ){
+
+    alert(
+      'Getting your GPS location...'
+    );
+
+    getLocation();
+
+    return;
+
+  }
+
+
+  const destination =
+  document.getElementById(
+    'v12GuideDestination'
+  ).value;
+
+
+  const message =
+  document.getElementById(
+    'v12GuideMessage'
+  ).value.trim();
+
+
+  /*
+    Uses existing guideRequests array.
+  */
+
+  guideRequests.push({
+
+    id:
+    'GPSGUIDE'+Date.now(),
+
+    name:
+    currentUser?.name ||
+    'Guest User',
+
+    phone:
+    currentUser?.phone ||
+    'Not provided',
+
+    destination,
+
+    message,
+
+    lat:
+    userLatitude,
+
+    lon:
+    userLongitude,
+
+    status:
+    'PENDING',
+
+    time:
+    new Date().toLocaleString(),
+
+    v12:true
+
+  });
+
+
+  saveV11();
+
+
+  document.getElementById(
+    'v12GuideResult'
+  ).innerHTML=`
+
+    <div class="result success">
+
+      <h3>
+
+        🧭 Guide Request Sent
+
+      </h3>
+
+
+      Destination:
+      <b>${destination}</b>
+
+
+      <br>
+
+      📍 Your current GPS location
+      is included in the request.
+
+    </div>
+
+  `;
+
+
+  document.getElementById(
+    'v12GuideMessage'
+  ).value='';
+
+}
+
+
+/* =====================================================
+   VOLUNTEER GUIDE REQUEST LIST
+===================================================== */
+
+function v12ShowGuideRequests(){
+
+  const active =
+  guideRequests.filter(
+    x =>
+    x.status !== 'COMPLETED'
+  );
+
+
+  volunteerContent.innerHTML=`
+
+    <div class="card">
+
+      <h2>
+
+        🧭 Guide Requests
+
+      </h2>
+
+
+      ${
+        active.length
+
+        ?
+
+        active.map(x=>`
+
+          <div class="guide-v12-card">
+
+            <h3>
+
+              🧭
+              ${x.destination ||
+                x.area ||
+                'Guide Request'}
+
+            </h3>
+
+
+            <b>
+              User:
+            </b>
+
+            ${x.name}
+
+
+            <br>
+
+
+            ${
+              x.message
+              ?
+
+              `
+              <b>Message:</b>
+              ${x.message}
+              <br>
+              `
+
+              :
+
+              ''
+            }
+
+
+            <b>
+              Status:
+            </b>
+
+            ${x.status}
+
+
+            <br><br>
+
+
+            ${
+              x.lat &&
+              x.lon
+
+              ?
+
+              `
+
+              <button
+                class="blue"
+                onclick="
+                  openGoogleDirections(
+                    ${x.lat},
+                    ${x.lon}
+                  )
+                ">
+
+                📍 NAVIGATE TO USER
+
+              </button>
+
+              `
+
+              :
+
+              ''
+            }
+
+
+            ${
+              x.status ===
+              'PENDING'
+
+              ?
+
+              `
+
+              <button
+                class="green"
+                onclick="
+                  v12AcceptGuide(
+                    '${x.id}'
+                  )
+                ">
+
+                🙋 ACCEPT REQUEST
+
+              </button>
+
+              `
+
+              :
+
+              ''
+            }
+
+
+            ${
+              x.status ===
+              'ASSIGNED'
+
+              ?
+
+              `
+
+              <button
+                class="green"
+                onclick="
+                  v12CompleteGuide(
+                    '${x.id}'
+                  )
+                ">
+
+                ✓ COMPLETED
+
+              </button>
+
+              `
+
+              :
+
+              ''
+            }
+
+          </div>
+
+        `).join('')
+
+        :
+
+        `
+
+        <div class="result success">
+
+          🟢 No active guide requests.
+
+        </div>
+
+        `
+
+      }
+
+    </div>
+
+  `;
+
+}
+
+
+function v12AcceptGuide(id){
+
+  const request =
+  guideRequests.find(
+    x => x.id === id
+  );
+
+
+  if(!request) return;
+
+
+  request.status =
+  'ASSIGNED';
+
+
+  request.volunteer =
+  volunteerSession?.name ||
+  'Volunteer';
+
+
+  saveV11();
+
+
+  v12ShowGuideRequests();
+
+}
+
+
+function v12CompleteGuide(id){
+
+  const request =
+  guideRequests.find(
+    x => x.id === id
+  );
+
+
+  if(!request) return;
+
+
+  request.status =
+  'COMPLETED';
+
+
+  request.completedAt =
+  new Date().toLocaleString();
+
+
+  saveV11();
+
+
+  v12ShowGuideRequests();
+
+}
+
+
+/* =====================================================
+   BUS MANAGEMENT
+===================================================== */
+
+function v12ShowBusManagement(){
+
+  volunteerContent.innerHTML=`
+
+    <div class="card">
+
+      <h2>
+
+        🚌 Bus Routes
+
+      </h2>
+
+
+      ${
+        v12BusRoutes.map(route=>`
+
+          <div
+            class="
+            bus-v12-card
+            bus-v12-live">
+
+            <h3>
+
+              🚌
+              ${route.number}
+
+            </h3>
+
+
+            <b>
+
+              ${route.name}
+
+            </b>
+
+
+            <br><br>
+
+
+            <b>
+              Registered Stops
+            </b>
+
+
+            ${
+              route.stops.map(
+                (stop,index)=>`
+
+                <div class="bus-stop-v12">
+
+                  ${index+1}.
+                  ${stop.name}
+
+                  <br>
+
+                  <small>
+
+                    📍
+                    ${stop.lat.toFixed(5)},
+                    ${stop.lon.toFixed(5)}
+
+                  </small>
+
+                </div>
+
+              `
+              ).join('')
+            }
+
+
+          </div>
+
+        `).join('')
+      }
+
+    </div>
+
+  `;
+
+}
+
+
+/* =====================================================
+   REPLACE ADD LOCATION FUNCTION
+===================================================== */
+
+function showAddLocation(){
+
+  volunteerContent.innerHTML=`
+
+    <div class="card">
+
+      <h2>
+
+        ➕ Add / Update Location
+
+      </h2>
+
+
+      <select id="newType">
+
+        <option value="bus">
+
+          🚌 Bus Stop
+
+        </option>
+
+        <option value="auto">
+
+          🛺 Auto / Rickshaw Stand
+
+        </option>
+
+        <option value="water">
+
+          💧 Drinking Water
+
+        </option>
+
+        <option value="toilet">
+
+          🚻 Toilet
+
+        </option>
+
+        <option value="police">
+
+          🚔 Police Help Centre
+
+        </option>
+
+        <option value="hospital">
+
+          🏥 Medical / Hospital
+
+        </option>
+
+        <option value="charging">
+
+          🔋 Charging Station
+
+        </option>
+
+        <option value="parking">
+
+          🅿️ Parking
+
+        </option>
+
+      </select>
+
+
+      <input
+        id="newName"
+        placeholder="Location Name">
+
+
+      <input
+        id="newAddress"
+        placeholder="Address">
+
+
+      <input
+        id="newLat"
+        type="number"
+        step="any"
+        placeholder="Latitude">
+
+
+      <input
+        id="newLon"
+        type="number"
+        step="any"
+        placeholder="Longitude">
+
+
+      <input
+        id="newCharge"
+        placeholder="Charge / Free">
+
+
+      <button
+        class="blue"
+        onclick="v12UseGPS()">
+
+        📍 USE MY CURRENT GPS
+
+      </button>
+
+
+      <button
+        class="green"
+        onclick="v12SaveLocation()">
+
+        💾 SAVE LOCATION
+
+      </button>
+
+    </div>
+
+  `;
+
+}
+
+
+function v12UseGPS(){
+
+  if(
+    userLatitude === null
+  ){
+
+    getLocation();
+
+    alert(
+      'Allow GPS permission, then press this button again.'
+    );
+
+    return;
+
+  }
+
+
+  document.getElementById(
+    'newLat'
+  ).value =
+  userLatitude;
+
+
+  document.getElementById(
+    'newLon'
+  ).value =
+  userLongitude;
+
+}
+
+
+function v12SaveLocation(){
+
+  const type =
+  newType.value;
+
+  const name =
+  newName.value.trim();
+
+  const address =
+  newAddress.value.trim();
+
+  const lat =
+  parseFloat(
+    newLat.value
+  );
+
+  const lon =
+  parseFloat(
+    newLon.value
+  );
+
+  const charge =
+  newCharge.value.trim();
+
+
+  if(
+    !name ||
+    !Number.isFinite(lat) ||
+    !Number.isFinite(lon)
+  ){
+
+    alert(
+      'Enter location name and exact GPS coordinates.'
+    );
+
+    return;
+
+  }
+
+
+  if(
+    type === 'charging'
+  ){
+
+    chargingStations.push({
+
+      id:
+      'CHG'+Date.now(),
+
+      name,
+
+      address,
+
+      lat,
+
+      lon,
+
+      slots:
+      [1,1,1,1,0,0],
+
+      charge:
+      charge ||
+      'As displayed'
+
+    });
+
+  }
+
+
+  else if(
+    type === 'parking'
+  ){
+
+    parkingStations.push({
+
+      id:
+      'PARK'+Date.now(),
+
+      name,
+
+      address,
+
+      lat,
+
+      lon,
+
+      car:
+      [1,1,1,0],
+
+      bike:
+      [1,1,1,1],
+
+      ev:false,
+
+      charge:
+      charge ||
+      'As displayed'
+
+    });
+
+  }
+
+
+  else{
+
+    services.push({
+
+      id:
+      'SER'+Date.now(),
+
+      type,
+
+      name,
+
+      address,
+
+      lat,
+
+      lon,
+
+      charge:
+      charge ||
+      'Free / As applicable'
+
+    });
+
+  }
+
+
+  save();
+
+
+  renderPublic();
+
+
+  alert(
+    'Location saved successfully!'
+  );
+
+
+  showAddLocation();
+
+}
+
+
+/* =====================================================
+   INITIALIZATION
+===================================================== */
+
+function initV12(){
+
+  injectV12Public();
+
+  injectV12Volunteer();
+
+}
+
+
+/*
+ Run after every previous script
+ has finished loading.
+*/
+
+if(
+  document.readyState ===
+  'loading'
+){
+
+  document.addEventListener(
+    'DOMContentLoaded',
+    ()=>{
+
+      setTimeout(
+        initV12,
+        500
+      );
+
+    }
+  );
+
+}
+
+else{
+
+  setTimeout(
+    initV12,
+    500
+  );
+
+}
+
+
+/*
+ When Volunteer page opens,
+ ensure new buttons exist.
+*/
+
+const v12OriginalOpenPage =
+openPage;
+
+
+openPage =
+function(id){
+
+  v12OriginalOpenPage(id);
+
+
+  setTimeout(
+    ()=>{
+
+      if(
+        id === 'volunteerPage'
+      ){
+
+        injectV12Volunteer();
+
+      }
+
+
+      if(
+        id === 'publicPage'
+      ){
+
+        injectV12Public();
+
+      }
+
+    },
+    100
+  );
+
+};
+
+</script>
+<script>
+
+/* =========================================================
+   GUIDE REQUEST → VOLUNTEER NOTIFICATION SYSTEM
+========================================================= */
+
+
+/* ---------------------------------------------
+   REMOVE OLD DUPLICATE EMERGENCY GUIDE CARD
+---------------------------------------------- */
+
+function removeDuplicateEmergencyGuide(){
+
+  const oldCard =
+  document.getElementById('v12GuideCard');
+
+  if(oldCard){
+
+    oldCard.remove();
+
+  }
+
+}
+
+
+/* ---------------------------------------------
+   REPLACE OLD GUIDE SUBMISSION FUNCTION
+---------------------------------------------- */
+
+function submitGuideV11(){
+
+  const name =
+  document.getElementById('gName')?.value.trim();
+
+  const phone =
+  document.getElementById('gPhone')?.value.trim();
+
+  const area =
+  document.getElementById('gArea')?.value;
+
+  const duration =
+  document.getElementById('gDuration')?.value;
+
+  const notes =
+  document.getElementById('gNotes')?.value.trim();
+
+
+  if(!name || !phone){
+
+    alert(
+      'Please enter your name and phone number.'
+    );
+
+    return;
+
+  }
+
+
+  /* GET USER GPS LOCATION */
+
+  let lat = null;
+  let lon = null;
+
+
+  if(
+    typeof userLatitude !== 'undefined' &&
+    typeof userLongitude !== 'undefined'
+  ){
+
+    lat = userLatitude;
+    lon = userLongitude;
+
+  }
+
+
+  /* CREATE GUIDE REQUEST */
+
+  const request = {
+
+    id:
+    'GUIDE' + Date.now(),
+
+    name:
+    name,
+
+    phone:
+    phone,
+
+    area:
+    area,
+
+    duration:
+    duration,
+
+    notes:
+    notes,
+
+    lat:
+    lat,
+
+    lon:
+    lon,
+
+    status:
+    'PENDING',
+
+    time:
+    new Date().toLocaleString(),
+
+    notificationSeen:
+    false
+
+  };
+
+
+  guideRequests.push(
+    request
+  );
+
+
+  /* SAVE REQUEST */
+
+  saveV11();
+
+
+  /* SUCCESS MESSAGE */
+
+  const result =
+  document.getElementById(
+    'guideResultV11'
+  );
+
+
+  if(result){
+
+    result.innerHTML = `
+
+      <div class="result success">
+
+        <h3>
+          🧭 Guide Request Sent Successfully
+        </h3>
+
+        Your request has been sent to
+        the volunteer team.
+
+        <br><br>
+
+        <b>📍 Area:</b>
+        ${area}
+
+        <br>
+
+        <b>⏱ Duration:</b>
+        ${duration}
+
+        <br><br>
+
+        <span class="status-badge status-pending">
+
+          WAITING FOR VOLUNTEER
+
+        </span>
+
+      </div>
+
+    `;
+
+  }
+
+
+  /* SHOW NOTIFICATION */
+
+  notifyVolunteerForGuide(
+    request
+  );
+
+
+  /* REFRESH GUIDE LIST */
+
+  if(
+    typeof renderGuidesV11 === 'function'
+  ){
+
+    renderGuidesV11();
+
+  }
+
+}
+
+
+/* =========================================================
+   VOLUNTEER NOTIFICATION
+========================================================= */
+
+function notifyVolunteerForGuide(request){
+
+  const notificationText =
+  `New guide request from ${request.name} for ${request.area}`;
+
+
+  /* BROWSER NOTIFICATION */
+
+  if('Notification' in window){
+
+    if(
+      Notification.permission === 'granted'
+    ){
+
+      new Notification(
+
+        '🧭 New Guide Request',
+
+        {
+
+          body:
+          notificationText
+
+        }
+
+      );
+
+    }
+
+
+    else if(
+      Notification.permission === 'default'
+    ){
+
+      Notification.requestPermission()
+      .then(permission=>{
+
+        if(
+          permission === 'granted'
+        ){
+
+          new Notification(
+
+            '🧭 New Guide Request',
+
+            {
+
+              body:
+              notificationText
+
+            }
+
+          );
+
+        }
+
+      });
+
+    }
+
+  }
+
+
+  /* SOUND / ALERT FOR VOLUNTEER */
+
+  console.log(
+    'NEW VOLUNTEER GUIDE REQUEST:',
+    request
+  );
+
+}
+
+
+/* =========================================================
+   ADD GUIDE REQUESTS TO VOLUNTEER DASHBOARD
+========================================================= */
+
+function showVolunteerGuideRequests(){
+
+  const pendingRequests =
+  guideRequests.filter(
+    request =>
+    request.status !== 'COMPLETED'
+  );
+
+
+  if(
+    typeof volunteerContent === 'undefined'
+  ){
+
+    return;
+
+  }
+
+
+  volunteerContent.innerHTML = `
+
+    <div class="card">
+
+      <h2>
+        🧭 GUIDE REQUESTS
+      </h2>
+
+      <p class="map-note">
+
+        Users requesting a local guide
+        will appear here.
+
+      </p>
+
+
+      ${
+        pendingRequests.length > 0
+
+        ?
+
+        pendingRequests.map(request=>`
+
+          <div class="guide-card">
+
+            <h3>
+
+              🧭 ${request.area}
+
+            </h3>
+
+
+            <p>
+
+              <b>👤 User:</b>
+              ${request.name}
+
+            </p>
+
+
+            <p>
+
+              <b>📞 Phone:</b>
+              ${request.phone}
+
+            </p>
+
+
+            <p>
+
+              <b>⏱ Required For:</b>
+              ${request.duration}
+
+            </p>
+
+
+            <p>
+
+              <b>📝 Request:</b>
+              ${request.notes || 'No additional information'}
+
+            </p>
+
+
+            <p>
+
+              <b>🕒 Requested:</b>
+              ${request.time}
+
+            </p>
+
+
+            <p>
+
+              <b>Status:</b>
+
+              <span class="v12-badge
+              ${
+                request.status === 'PENDING'
+                ?
+                'v12-pending'
+                :
+                'v12-assigned'
+              }">
+
+                ${request.status}
+
+              </span>
+
+            </p>
+
+
+            ${
+              request.status === 'PENDING'
+
+              ?
+
+              `
+
+              <button
+                class="green"
+                onclick="acceptVolunteerGuide('${request.id}')">
+
+                🙋 ACCEPT GUIDE REQUEST
+
+              </button>
+
+              `
+
+              :
+
+              ''
+            }
+
+
+            ${
+              request.lat &&
+              request.lon
+
+              ?
+
+              `
+
+              <button
+                class="blue"
+                onclick="
+                  openGoogleDirections(
+                    ${request.lat},
+                    ${request.lon}
+                  )
+                ">
+
+                📍 NAVIGATE TO USER
+
+              </button>
+
+              `
+
+              :
+
+              ''
+            }
+
+
+            ${
+              request.status === 'ASSIGNED'
+
+              ?
+
+              `
+
+              <button
+                class="green"
+                onclick="
+                  completeVolunteerGuide(
+                    '${request.id}'
+                  )
+                ">
+
+                ✓ GUIDE COMPLETED
+
+              </button>
+
+              `
+
+              :
+
+              ''
+            }
+
+
+          </div>
+
+        `).join('')
+
+        :
+
+        `
+
+          <div class="result info">
+
+            🟢 No active guide requests.
+
+          </div>
+
+        `
+
+      }
+
+    </div>
+
+  `;
+
+}
+
+
+/* =========================================================
+   ACCEPT GUIDE REQUEST
+========================================================= */
+
+function acceptVolunteerGuide(id){
+
+  const request =
+  guideRequests.find(
+    item => item.id === id
+  );
+
+
+  if(!request) return;
+
+
+  request.status =
+  'ASSIGNED';
+
+
+  request.volunteer =
+  typeof volunteerSession !== 'undefined' &&
+  volunteerSession?.name
+  ?
+  volunteerSession.name
+  :
+  'Volunteer';
+
+
+  request.acceptedTime =
+  new Date().toLocaleString();
+
+
+  saveV11();
+
+
+  showVolunteerGuideRequests();
+
+}
+
+
+/* =========================================================
+   COMPLETE GUIDE REQUEST
+========================================================= */
+
+function completeVolunteerGuide(id){
+
+  const request =
+  guideRequests.find(
+    item => item.id === id
+  );
+
+
+  if(!request) return;
+
+
+  request.status =
+  'COMPLETED';
+
+
+  request.completedTime =
+  new Date().toLocaleString();
+
+
+  saveV11();
+
+
+  showVolunteerGuideRequests();
+
+}
+
+
+/* =========================================================
+   ENSURE GUIDE REQUEST BUTTON EXISTS
+========================================================= */
+
+function addVolunteerGuideButton(){
+
+  const page =
+  document.getElementById(
+    'volunteerPage'
+  );
+
+
+  if(!page) return;
+
+
+  if(
+    document.getElementById(
+      'mainVolunteerGuideButton'
+    )
+  ){
+
+    return;
+
+  }
+
+
+  const grid =
+  page.querySelector(
+    '.card .grid'
+  );
+
+
+  if(!grid) return;
+
+
+  const button =
+  document.createElement(
+    'button'
+  );
+
+
+  button.id =
+  'mainVolunteerGuideButton';
+
+
+  button.className =
+  'purple';
+
+
+  button.innerHTML =
+  '🧭 GUIDE REQUESTS';
+
+
+  button.onclick =
+  showVolunteerGuideRequests;
+
+
+  grid.appendChild(
+    button
+  );
+
+}
+
+
+/* =========================================================
+   INITIALIZE
+========================================================= */
+
+function initGuideNotificationSystem(){
+
+  removeDuplicateEmergencyGuide();
+
+  addVolunteerGuideButton();
+
+}
+
+
+document.addEventListener(
+  'DOMContentLoaded',
+  ()=>{
+
+    setTimeout(
+      initGuideNotificationSystem,
+      500
+    );
+
+  }
+);
+
+
+/* ALSO RUN IF PAGE ALREADY LOADED */
+
+setTimeout(
+  initGuideNotificationSystem,
+  1000
+);
+
+</script>
+<script>
+
+/* =========================================================
+   RESTORE BUS TRACKING CARD
+   Keep existing guide system unchanged
+========================================================= */
+
+function restoreBusTrackingCard(){
+
+  const page =
+  document.getElementById('publicPage');
+
+  if(!page) return;
+
+
+  /* Prevent duplicate card */
+
+  const oldCard =
+  document.getElementById(
+    'v12BusTrackingCard'
+  );
+
+  if(oldCard){
+
+    return;
+
+  }
+
+
+  const card =
+  document.createElement('div');
+
+  card.className = 'card';
+
+  card.id = 'v12BusTrackingCard';
+
+
+  card.innerHTML = `
+
+    <h2>
+      🚌 Live Bus Tracking
+    </h2>
+
+    <p class="map-note">
+
+      Turn on GPS tracking. The system will
+      check whether your location is moving
+      on a registered bus route and estimate
+      the time to reach the next bus stop.
+
+    </p>
+
+
+    <div class="grid">
+
+      <button
+        class="blue"
+        id="restoreBusStartBtn">
+
+        📡 START BUS TRACKING
+
+      </button>
+
+
+      <button
+        class="gray"
+        id="restoreBusStopBtn">
+
+        ⏹ STOP TRACKING
+
+      </button>
+
+    </div>
+
+
+    <div id="v12BusResult">
+
+      <div class="result info">
+
+        🚌 Bus tracking is currently off.
+
+      </div>
+
+    </div>
+
+  `;
+
+
+  /* Put bus tracking before the existing
+     Hire a Local Guide card */
+
+  const guideCard =
+  [...page.querySelectorAll('.card')]
+  .find(card =>
+    card.textContent.includes(
+      'Hire a Local Guide'
+    )
+  );
+
+
+  if(guideCard){
+
+    guideCard.before(card);
+
+  }
+
+  else{
+
+    page.appendChild(card);
+
+  }
+
+
+  /* Connect buttons to existing V12 functions */
+
+  document.getElementById(
+    'restoreBusStartBtn'
+  ).onclick = function(){
+
+    if(
+      typeof v12StartBusTracking ===
+      'function'
+    ){
+
+      v12StartBusTracking();
+
+    }
+
+    else{
+
+      alert(
+        'Bus tracking function is missing. Please keep the V12 bus tracking code in your file.'
+      );
+
+    }
+
+  };
+
+
+  document.getElementById(
+    'restoreBusStopBtn'
+  ).onclick = function(){
+
+    if(
+      typeof v12StopBusTracking ===
+      'function'
+    ){
+
+      v12StopBusTracking();
+
+    }
+
+  };
+
+}
+
+
+/* =========================================================
+   RUN WHEN PAGE LOADS
+========================================================= */
+
+setTimeout(
+  restoreBusTrackingCard,
+  500
+);
+
+
+setTimeout(
+  restoreBusTrackingCard,
+  1500
+);
+
+
+/* =========================================================
+   RESTORE AGAIN WHEN PUBLIC PAGE IS OPENED
+========================================================= */
+
+const restoreBusOriginalOpenPage =
+window.openPage;
+
+
+window.openPage =
+function(id){
+
+  if(
+    typeof restoreBusOriginalOpenPage ===
+    'function'
+  ){
+
+    restoreBusOriginalOpenPage(id);
+
+  }
+
+
+  if(
+    id === 'publicPage'
+  ){
+
+    setTimeout(
+      restoreBusTrackingCard,
+      200
+    );
+
+  }
+
+};
+/* =========================================================
+   BUS TRACKING ENGINE
+========================================================= */
+
+
+/* Demo Kumbh bus routes */
+
+
+
+
+/* =========================================================
+   DISTANCE CALCULATION
+========================================================= */
+
+function v12Distance(lat1, lon1, lat2, lon2) {
+
+  const R = 6371;
+
+  const dLat =
+    (lat2 - lat1) *
+    Math.PI / 180;
+
+  const dLon =
+    (lon2 - lon1) *
+    Math.PI / 180;
+
+  const a =
+
+    Math.sin(dLat / 2) *
+    Math.sin(dLat / 2)
+
+    +
+
+    Math.cos(lat1 * Math.PI / 180) *
+    Math.cos(lat2 * Math.PI / 180) *
+
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
+
+  const c =
+    2 *
+    Math.atan2(
+      Math.sqrt(a),
+      Math.sqrt(1 - a)
+    );
+
+  return R * c;
+
+}
+
+
+/* =========================================================
+   FIND NEAREST BUS ROUTE
+========================================================= */
+
+function v12FindBusRoute(lat, lon) {
+
+  let nearestRoute = null;
+
+  let minimumDistance =
+    Infinity;
+
+
+  v12BusRoutes.forEach(route => {
+
+    route.stops.forEach(stop => {
+
+      const distance =
+        v12Distance(
+          lat,
+          lon,
+          stop.lat,
+          stop.lon
+        );
+
+
+      if (
+        distance <
+        minimumDistance
+      ) {
+
+        minimumDistance =
+          distance;
+
+        nearestRoute =
+          route;
+
+      }
+
+    });
+
+  });
+
+
+  /* Route detected within 3 km */
+
+  if (
+    minimumDistance <= 3
+  ) {
+
+    return nearestRoute;
+
+  }
+
+
+  return null;
+
+}
+
+
+/* =========================================================
+   FIND NEXT BUS STOP
+========================================================= */
+
+function v12GetNextStop(route, lat, lon) {
+
+  let closestIndex = 0;
+
+  let minimumDistance =
+    Infinity;
+
+
+  route.stops.forEach(
+    (stop, index) => {
+
+      const distance =
+        v12Distance(
+          lat,
+          lon,
+          stop.lat,
+          stop.lon
+        );
+
+
+      if (
+        distance <
+        minimumDistance
+      ) {
+
+        minimumDistance =
+          distance;
+
+        closestIndex =
+          index;
+
+      }
+
+    }
+  );
+
+
+  const nextIndex =
+
+    closestIndex <
+    route.stops.length - 1
+
+      ?
+
+      closestIndex + 1
+
+      :
+
+      closestIndex;
+
+
+  return route.stops[nextIndex];
+
+}
+
+
+/* =========================================================
+   START BUS TRACKING
+========================================================= */
+
+function v12StartBusTracking() {
+
+  if (
+    !navigator.geolocation
+  ) {
+
+    alert(
+      'GPS is not supported on this device.'
+    );
+
+    return;
+
+  }
+
+
+  const result =
+    document.getElementById(
+      'v12BusResult'
+    );
+
+
+  if (result) {
+
+    result.innerHTML = `
+
+      <div class="result info">
+
+        📡 Starting live GPS tracking...
+
+      </div>
+
+    `;
+
+  }
+
+
+  /* Stop old tracking */
+
+  if (
+    v12BusWatch !== null
+  ) {
+
+    navigator.geolocation.clearWatch(
+      v12BusWatch
+    );
+
+  }
+
+
+  v12BusWatch =
+    navigator.geolocation.watchPosition(
+
+      function(position) {
+
+        const lat =
+          position.coords.latitude;
+
+        const lon =
+          position.coords.longitude;
+
+
+        /* Save current user location */
+
+        if (
+          typeof userLatitude !==
+          'undefined'
+        ) {
+
+          userLatitude = lat;
+
+        }
+
+
+        if (
+          typeof userLongitude !==
+          'undefined'
+        ) {
+
+          userLongitude = lon;
+
+        }
+
+
+        const route =
+          v12FindBusRoute(
+            lat,
+            lon
+          );
+
+
+        if (!route) {
+
+          if (result) {
+
+            result.innerHTML = `
+
+              <div class="result warning">
+
+                🚶 No registered bus route
+                detected nearby.
+
+                <br><br>
+
+                📍 GPS tracking is still active.
+
+              </div>
+
+            `;
+
+          }
+
+          return;
+
+        }
+
+
+        const nextStop =
+          v12GetNextStop(
+            route,
+            lat,
+            lon
+          );
+
+
+        const distance =
+          v12Distance(
+            lat,
+            lon,
+            nextStop.lat,
+            nextStop.lon
+          );
+
+
+        /* Estimate bus speed */
+
+        let speed =
+          position.coords.speed;
+
+
+        /* GPS speed is metres/second */
+
+        if (
+          speed &&
+          speed > 1
+        ) {
+
+          speed =
+            speed * 3.6;
+
+        }
+
+        else {
+
+          /* Default 20 km/h */
+
+          speed = 20;
+
+        }
+
+
+        const eta =
+
+          Math.max(
+
+            1,
+
+            Math.round(
+              distance /
+              speed *
+              60
+            )
+
+          );
+
+
+        if (result) {
+
+          result.innerHTML = `
+
+            <div class="bus-v12-card bus-v12-live">
+
+              <h3>
+
+                🚌 ${route.number}
+
+              </h3>
+
+              <b>
+
+                ${route.name}
+
+              </b>
+
+              <br><br>
+
+              <b>
+                ⏭ Next Stop:
+              </b>
+
+              ${nextStop.name}
+
+              <br><br>
+
+              <b>
+                📏 Distance:
+              </b>
+
+              ${distance.toFixed(2)} km
+
+              <br><br>
+
+              <b>
+                ⏱ Estimated Arrival:
+              </b>
+
+              ${eta} minutes
+
+              <br><br>
+
+              <span class="v12-badge v12-done">
+
+                ● LIVE GPS ACTIVE
+
+              </span>
+
+            </div>
+
+          `;
+
+        }
+
+      },
+
+
+      function(error) {
+
+        if (result) {
+
+          result.innerHTML = `
+
+            <div class="result danger">
+
+              ❌ GPS Error:
+              ${error.message}
+
+            </div>
+
+          `;
+
+        }
+
+      },
+
+
+      {
+
+        enableHighAccuracy: true,
+
+        maximumAge: 3000,
+
+        timeout: 20000
+
+      }
+
+    );
+
+}
+
+
+/* =========================================================
+   STOP BUS TRACKING
+========================================================= */
+
+function v12StopBusTracking() {
+
+  if (
+    v12BusWatch !== null
+  ) {
+
+    navigator.geolocation.clearWatch(
+      v12BusWatch
+    );
+
+    v12BusWatch =
+      null;
+
+  }
+
+
+  const result =
+    document.getElementById(
+      'v12BusResult'
+    );
+
+
+  if (result) {
+
+    result.innerHTML = `
+
+      <div class="result info">
+
+        ⏹ Bus tracking stopped.
+
+      </div>
+
+    `;
+
+  }
+
+}
+</script>
 </body>
 </html>
