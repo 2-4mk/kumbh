@@ -499,6 +499,18 @@ body > #accountCorner,
 </div>
 
 <div class="card">
+<h2>🚨 <span data-i18n="emergency">Emergency Assistance</span></h2>
+<button class="red" style="font-size:19px;padding:20px" onclick="createSOS()">🚨 <span data-i18n="sos">SOS – I NEED HELP</span></button>
+<div id="sosPanel" class="hidden"><div class="grid">
+<button class="blue" onclick="callNumber('112')">🚔 POLICE 112</button>
+<button class="green" onclick="callNumber('108')">🏥 AMBULANCE 108</button>
+<button class="orange" onclick="callNumber('101')">🔥 FIRE 101</button>
+<button class="purple" onclick="shareLocation()">📍 <span data-i18n="share">SHARE LOCATION</span></button>
+</div></div>
+</div>
+
+<!-- Feedback - last section of Public Page -->
+<div class="card">
 <h2>⭐ <span data-i18n="feedback">Feedback</span></h2>
 <p data-i18n="feedbackq">How was your experience?</p>
 <div class="grid">
@@ -508,17 +520,6 @@ body > #accountCorner,
 <button class="gray" onclick="setRating(5)">⭐⭐⭐⭐⭐ 5</button>
 <textarea id="feedbackText" data-i18n-placeholder="feedbackph" placeholder="Write your feedback..."></textarea>
 <button class="blue" onclick="submitFeedback()" data-i18n="submitfeedback">SUBMIT FEEDBACK</button><div id="feedbackResult"></div>
-</div>
-
-<div class="card">
-<h2>🚨 <span data-i18n="emergency">Emergency Assistance</span></h2>
-<button class="red" style="font-size:19px;padding:20px" onclick="createSOS()">🚨 <span data-i18n="sos">SOS – I NEED HELP</span></button>
-<div id="sosPanel" class="hidden"><div class="grid">
-<button class="blue" onclick="callNumber('112')">🚔 POLICE 112</button>
-<button class="green" onclick="callNumber('108')">🏥 AMBULANCE 108</button>
-<button class="orange" onclick="callNumber('101')">🔥 FIRE 101</button>
-<button class="purple" onclick="shareLocation()">📍 <span data-i18n="share">SHARE LOCATION</span></button>
-</div></div>
 </div>
 </section>
 
@@ -2074,11 +2075,117 @@ const _approveV11=approveVolunteer;approveVolunteer=function(id){_approveV11(id)
 
 
 <!-- Firebase real-time sync removed. This version uses the original local application system only. -->
-<!-- =====================================================
- KUMBH RAKSHAK V12
- BUS TRACKING + CLEANING ALERTS + VOLUNTEER GUIDE REQUESTS
- PASTE IMMEDIATELY BEFORE </body>
-====================================================== -->
+<!-- ================= Safety QR and Bus Timetable ================= -->
+<style id="v13-enhancements">
+.v13-card{border-left:5px solid #2f6ea5}
+.v13-item{padding:12px;margin:10px 0;border:1px solid #d8dee8;border-radius:12px;background:rgba(255,255,255,.6)}
+.v13-item h3{margin:0 0 6px}.v13-meta{font-size:13px;opacity:.82}.v13-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.v13-badge{display:inline-block;padding:4px 9px;border-radius:999px;background:#eaf7ee;font-weight:700}
+.v13-warning{padding:10px;border-radius:10px;background:#fff3cd;margin:8px 0}
+.v13-qrbox{background:#fff;padding:12px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;margin-top:10px;min-width:224px;min-height:224px}
+.v13-qrbox canvas,.v13-qrbox img{display:block!important;width:200px!important;height:200px!important;max-width:200px!important}
+</style>
+<script id="v13-enhancements-script">
+/* Safety QR profile + volunteer bus timetable */
+let v13BusTimetable=JSON.parse(localStorage.getItem('kumbhV13BusTimetable')||'[]');
+
+function v13Escape(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+function v13Maps(lat,lon){return 'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(lat+','+lon);}
+
+/* Replace old safety QR with a universally readable JSON payload containing profile + latest GPS. */
+showSafetyRegistration=function(){
+  if(!currentUser){
+    safetyRegistration.innerHTML='<div class="result danger">🔒 Please login or create an account first.</div>';
+    return;
+  }
+  const render=()=>{
+    const lat=userLatitude, lon=userLongitude;
+    const payload={
+      type:'KUMBH_RAKSHAK_SAFETY',
+      safetyId:'SAFETY-'+currentUser.id,
+      name:currentUser.name||'',
+      phone:currentUser.phone||'',
+      location:(lat!==null&&lon!==null)?{lat:+Number(lat).toFixed(6),lon:+Number(lon).toFixed(6)}:null
+    };
+    const text=JSON.stringify(payload);
+    localStorage.setItem('kumbhV13SafetyPayload',text);
+    safetyRegistration.innerHTML=`<div class="result success">
+      <b>🛡️ Universal Safety QR ready</b><br>
+      <small>Scan this QR with any standard QR scanner to read the saved name, contact and location.</small>
+      <div id="mySafetyQR" class="v13-qrbox"></div>
+      <div class="v13-row">
+        <button class="blue" onclick="v13ShareSafetyProfile()">📤 SHARE SAFETY DETAILS</button>
+        <button class="gray" onclick="v13RefreshSafetyQR()">📍 REFRESH LOCATION & QR</button>
+      </div>
+      <div id="v13QRStatus" class="map-note"></div>
+    </div>`;
+
+    const el=document.getElementById('mySafetyQR');
+    const status=document.getElementById('v13QRStatus');
+    try{
+      if(typeof QRCode==='undefined') throw new Error('QR library did not load');
+      el.innerHTML='';
+      new QRCode(el,{
+        text:text,
+        width:200,
+        height:200,
+        colorDark:'#000000',
+        colorLight:'#ffffff',
+        correctLevel:QRCode.CorrectLevel ? QRCode.CorrectLevel.M : 0
+      });
+      status.textContent='✅ QR code generated successfully.';
+    }catch(err){
+      status.innerHTML='<span style="color:#b00020">⚠️ QR could not be generated: '+v13Escape(err.message)+'</span>';
+    }
+  };
+  if(userLatitude===null||userLongitude===null){
+    if(navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(
+        pos=>{userLatitude=pos.coords.latitude;userLongitude=pos.coords.longitude;render();},
+        ()=>render(),
+        {enableHighAccuracy:true,timeout:12000,maximumAge:5000}
+      );
+    }else render();
+  }else render();
+};
+function v13RefreshSafetyQR(){
+  if(!navigator.geolocation){showSafetyRegistration();return;}
+  navigator.geolocation.getCurrentPosition(
+    pos=>{userLatitude=pos.coords.latitude;userLongitude=pos.coords.longitude;showSafetyRegistration();},
+    ()=>showSafetyRegistration(),
+    {enableHighAccuracy:true,timeout:12000,maximumAge:0}
+  );
+}
+function v13ShareSafetyProfile(){
+  const text=localStorage.getItem('kumbhV13SafetyPayload')||'';
+  if(!text)return alert('Generate the Safety QR first.');
+  const d=JSON.parse(text); const msg=`🛡️ Kumbh Rakshak Safety Profile\nName: ${d.name}\nContact: ${d.phone}\nLocation: ${d.location?'https://www.google.com/maps?q='+d.location.lat+','+d.location.lon:'Location unavailable'}`;
+  if(navigator.share)navigator.share({title:'Kumbh Rakshak Safety Profile',text:msg}); else navigator.clipboard?.writeText(msg).then(()=>alert('Safety details copied.'));
+}
+/* Scanner also understands the universal JSON QR. */
+const v13OldHandleQR=handleQR;
+handleQR=function(data){
+  try{const p=JSON.parse(data);if(p&&p.type==='KUMBH_RAKSHAK_SAFETY'){
+    const loc=p.location?`<br>📍 Location: <a href="https://www.google.com/maps?q=${p.location.lat},${p.location.lon}" target="_blank">Open in Google Maps</a>`:'<br>📍 Location unavailable';
+    qrResult.innerHTML=`<div class="result success"><h3>🛡️ Safety Profile</h3><b>${v13Escape(p.name)}</b><br>📞 <a href="tel:${encodeURIComponent(p.phone||'')}">${v13Escape(p.phone||'Not available')}</a>${loc}<br><small>Safety ID: ${v13Escape(p.safetyId||'')}</small></div>`;
+    return;
+  }}catch(e){}
+  return v13OldHandleQR(data);
+};
+
+function v13PublicBusCard(){
+  const p=document.getElementById('publicPage');if(!p||document.getElementById('v13PublicBusCard'))return;
+  const card=document.createElement('div');card.id='v13PublicBusCard';card.className='card v13-card';card.innerHTML='<h2>🚌 Bus Timetable</h2><p>View volunteer-updated bus routes and departure times.</p><button class="blue" onclick="v13RenderBusTimetable()">🗓️ VIEW BUS TIMETABLE</button><div id="v13BusTimetableResult"></div>';const fb=p.querySelector('#feedbackText')?.closest('.card');p.insertBefore(card,fb||null);
+}
+function v13RenderBusTimetable(){const out=document.getElementById('v13BusTimetableResult');if(!out)return;const q=(document.getElementById('v13BusSearch')?.value||'').toLowerCase();let a=[...v13BusTimetable].filter(x=>[x.route,x.from,x.to,x.time].join(' ').toLowerCase().includes(q));a.sort((x,y)=>(x.time||'').localeCompare(y.time||''));out.innerHTML=`<input id="v13BusSearch" placeholder="Search route, from or destination" oninput="v13RenderBusTimetable()">`+(a.length?a.map(x=>`<div class="v13-item"><h3>🚌 ${v13Escape(x.route)}</h3><b>${v13Escape(x.from)} → ${v13Escape(x.to)}</b><br>🕒 ${v13Escape(x.time)}${x.notes?'<br><span class="v13-meta">'+v13Escape(x.notes)+'</span>':''}</div>`).join(''):'<div class="result info">No bus timetable entries yet.</div>');}
+function v13ShowBusManager(){volunteerContent.innerHTML=`<div class="card v13-card"><h2>🚌 Add / Update Bus Timetable</h2><input id="v13Route" placeholder="Bus number / route name"><input id="v13From" placeholder="From"><input id="v13To" placeholder="Destination"><input id="v13Time" type="time"><textarea id="v13Notes" placeholder="Notes, platform, frequency, etc."></textarea><button class="green" onclick="v13AddBusEntry()">➕ ADD TIMETABLE ENTRY</button><div id="v13VolunteerBusList"></div></div>`;v13RenderVolunteerBusList();}
+function v13AddBusEntry(){const route=document.getElementById('v13Route').value.trim(),from=document.getElementById('v13From').value.trim(),to=document.getElementById('v13To').value.trim(),time=document.getElementById('v13Time').value,notes=document.getElementById('v13Notes').value.trim();if(!route||!from||!to||!time)return alert('Please fill route, from, destination and departure time.');v13BusTimetable.push({id:'BUS-'+Date.now(),route,from,to,time,notes,updatedBy:volunteerSession?.name||'Volunteer',updatedAt:new Date().toLocaleString()});v13SaveBus();v13ShowBusManager();}
+function v13RenderVolunteerBusList(){const out=document.getElementById('v13VolunteerBusList');if(!out)return;out.innerHTML='<h3>Current Timetable</h3>'+(v13BusTimetable.length?v13BusTimetable.map(x=>`<div class="v13-item"><b>${v13Escape(x.route)}</b> — ${v13Escape(x.from)} → ${v13Escape(x.to)} at ${v13Escape(x.time)}<br><small>Updated by ${v13Escape(x.updatedBy||'Volunteer')} · ${v13Escape(x.updatedAt||'')}</small><div class="v13-row"><button class="red" onclick="v13DeleteBus('${x.id}')">DELETE</button></div></div>`).join(''):'<p>No entries yet.</p>');}
+function v13DeleteBus(id){if(!confirm('Delete this timetable entry?'))return;v13BusTimetable=v13BusTimetable.filter(x=>x.id!==id);v13SaveBus();v13RenderVolunteerBusList();}
+function v13VolunteerBusButton(){const dash=document.querySelector('#volunteerPage > .card .grid');if(dash&&!document.getElementById('v13BusVolunteerButton')){const b=document.createElement('button');b.id='v13BusVolunteerButton';b.className='orange';b.textContent='🚌 BUS TIMETABLE';b.onclick=v13ShowBusManager;dash.appendChild(b);}}
+function v13Init(){v13PublicBusCard();v13VolunteerBusButton();}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',v13Init);else v13Init();
+</script>
 
 <style>
 
@@ -5438,5 +5545,299 @@ function v12StopBusTracking() {
 
 }
 </script>
+
+<!-- V14: Single Safety QR + scan landing page -->
+<style id="v14SafetyQRStyles">
+#mySafetyQR.v14-single-qr{display:flex!important;align-items:center;justify-content:flex-start;min-height:220px}
+#mySafetyQR.v14-single-qr canvas,#mySafetyQR.v14-single-qr img{display:block!important;width:220px!important;height:220px!important;max-width:100%!important}
+#v14SafetyLanding{max-width:760px;margin:30px auto;padding:20px}
+#v14SafetyLanding .v14-contact{padding:12px;margin:8px 0;border-radius:12px;background:#f4f7fb}
+.v14-toggle{display:flex;gap:10px;align-items:center;padding:14px;border-radius:12px;background:#eef4ff;margin-top:15px}
+</style>
+<script id="v14SafetyQRScript">
+(function(){
+  function esc(v){return String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function publicBase(){
+    const u=new URL(window.location.href);
+    u.search='';u.hash='';
+    return u.toString();
+  }
+  function safetyURL(){
+    const c=(window.emergencyContacts&&currentUser)?(emergencyContacts[currentUser.id]||[]):[];
+    const q=new URLSearchParams();
+    q.set('safety','1');
+    q.set('id','SAFETY-'+(currentUser.id||''));
+    q.set('name',currentUser.name||'');
+    q.set('phone',currentUser.phone||'');
+    if(userLatitude!==null&&userLongitude!==null){q.set('lat',Number(userLatitude).toFixed(6));q.set('lon',Number(userLongitude).toFixed(6));}
+    c.slice(0,2).forEach((x,i)=>{q.set('ec'+(i+1)+'n',x.name||'');q.set('ec'+(i+1)+'p',x.phone||'');});
+    return publicBase()+'?'+q.toString();
+  }
+
+  window.showSafetyRegistration=function(){
+    if(!currentUser){
+      safetyRegistration.innerHTML='<div class="result danger">🔒 Please login or create an account first.</div>';return;
+    }
+    const render=function(){
+      const link=safetyURL();
+      localStorage.setItem('kumbhSafetyProfileURL',link);
+      safetyRegistration.innerHTML=`<div class="result success">
+        <b>🛡️ Safety QR ready</b><br>
+        <small>Scan this QR to open the Kumbh Rakshak Safety Profile with contact, emergency contacts and optional live-location directions.</small>
+        <div id="mySafetyQR" class="v14-single-qr"></div>
+        <div class="v13-row">
+          <button class="blue" onclick="v14ShareSafetyProfile()">📤 SHARE SAFETY DETAILS</button>
+          <button class="gray" onclick="v14RefreshSafetyQR()">📍 REFRESH LOCATION & QR</button>
+        </div>
+        <div id="v14QRStatus" class="map-note"></div>
+      </div>`;
+      const host=document.getElementById('mySafetyQR'),status=document.getElementById('v14QRStatus');
+      try{
+        if(typeof QRCode==='undefined') throw new Error('QR library did not load');
+        const tmp=document.createElement('div');
+        new QRCode(tmp,{text:link,width:220,height:220,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel?QRCode.CorrectLevel.M:0});
+        setTimeout(function(){
+          const chosen=tmp.querySelector('img')||tmp.querySelector('canvas');
+          host.innerHTML='';
+          if(!chosen) throw new Error('QR image was not created');
+          host.appendChild(chosen.cloneNode(true));
+          status.textContent='✅ One QR code generated successfully.';
+        },50);
+      }catch(err){status.textContent='⚠️ QR could not be generated: '+err.message;}
+    };
+    if(userLatitude===null||userLongitude===null){
+      if(navigator.geolocation) navigator.geolocation.getCurrentPosition(
+        pos=>{userLatitude=pos.coords.latitude;userLongitude=pos.coords.longitude;render();},
+        ()=>render(),{enableHighAccuracy:true,timeout:12000,maximumAge:5000}
+      ); else render();
+    } else render();
+  };
+
+  window.v14RefreshSafetyQR=function(){
+    if(!navigator.geolocation){showSafetyRegistration();return;}
+    navigator.geolocation.getCurrentPosition(
+      p=>{userLatitude=p.coords.latitude;userLongitude=p.coords.longitude;showSafetyRegistration();},
+      ()=>showSafetyRegistration(),{enableHighAccuracy:true,timeout:12000,maximumAge:0}
+    );
+  };
+  window.v14ShareSafetyProfile=function(){
+    const link=localStorage.getItem('kumbhSafetyProfileURL');
+    if(!link)return alert('Generate the Safety QR first.');
+    if(navigator.share) navigator.share({title:'Kumbh Rakshak Safety Profile',text:'Open my Kumbh Rakshak Safety Profile',url:link});
+    else navigator.clipboard&&navigator.clipboard.writeText(link).then(()=>alert('Safety Profile link copied.'));
+  };
+
+  function showLanding(){
+    const p=new URLSearchParams(location.search);
+    if(p.get('safety')!=='1') return;
+    const name=p.get('name')||'Safety Band Owner', phone=p.get('phone')||'Not available';
+    const lat=p.get('lat'),lon=p.get('lon');
+    const ecs=[1,2].map(i=>({name:p.get('ec'+i+'n'),phone:p.get('ec'+i+'p')})).filter(x=>x.name||x.phone);
+    document.body.innerHTML=`<div id="v14SafetyLanding">
+      <div class="card">
+        <h1>🛡️ Kumbh Rakshak Safety Profile</h1>
+        <p>Safety ID: <b>${esc(p.get('id'))}</b></p>
+        <div class="v14-contact"><b>👤 Owner:</b> ${esc(name)}<br><b>📞 Contact:</b> ${esc(phone)}</div>
+        <h3>🚨 Emergency Contacts</h3>
+        ${ecs.length?ecs.map((x,i)=>`<div class="v14-contact"><b>Contact ${i+1}:</b> ${esc(x.name||'Not set')}<br>📞 ${esc(x.phone||'Not set')}</div>`).join(''):'<p>No emergency contacts available.</p>'}
+        ${lat&&lon?`<div class="v14-toggle"><span>📍 Owner location is available</span><label style="margin-left:auto"><input id="v14LocToggle" type="checkbox"> Open directions</label></div>
+        <button id="v14Directions" class="blue" style="margin-top:12px">🧭 GET DIRECTIONS TO OWNER</button>`:'<p class="map-note">📍 Owner location was not available when this QR was generated.</p>'}
+        <p class="map-note">This profile was opened by scanning a Kumbh Rakshak Safety QR.</p>
+      </div>
+    </div>`;
+    const btn=document.getElementById('v14Directions');
+    if(btn) btn.onclick=()=>{ if(document.getElementById('v14LocToggle').checked) window.location.href='https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(lat+','+lon); else alert('Turn on the location toggle first to open directions.'); };
+  }
+  document.addEventListener('DOMContentLoaded',showLanding);
+})();
+</script>
+
+
+<!-- V15 FINAL UX FIXES: compact safety QR, bus order, show-more stations, EV option -->
+<style id="v15FixStyles">
+.v15-show-more{margin-top:12px}
+.v15-ev-row{display:none;margin:8px 0;padding:10px;border-radius:10px;background:#eef7ff;font-weight:600}
+.v15-ev-row.show{display:block}
+</style>
+<script id="v15FixScript">
+(function(){
+  /* ---------- 1) BUS TIMETABLE ABOVE LIVE BUS TRACKING ---------- */
+  function moveTimetable(){
+    const bus=document.getElementById('v13PublicBusCard');
+    const tracking=document.getElementById('v12BusTrackingCard');
+    if(bus && tracking && bus.parentNode===tracking.parentNode && bus.nextElementSibling!==tracking){
+      tracking.parentNode.insertBefore(bus,tracking);
+    }
+  }
+  setInterval(moveTimetable,300);
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(moveTimetable,700));
+
+  /* ---------- 2) SHOW ONLY ONE CHARGING/PARKING CARD + SHOW MORE ---------- */
+  let chargingExpanded=false, parkingExpanded=false;
+
+  function stationDistanceSort(list){
+    return [...list].sort((a,b)=>{
+      if(userLatitude===null||userLongitude===null) return 0;
+      return straightDistance(userLatitude,userLongitude,a.lat,a.lon)-straightDistance(userLatitude,userLongitude,b.lat,b.lon);
+    });
+  }
+
+  window.renderCharging=function(){
+    const el=document.getElementById('chargingStations');
+    if(!el) return;
+    const all=stationDistanceSort(chargingStations);
+    const visible=chargingExpanded?all:all.slice(0,1);
+    el.innerHTML=visible.map(st=>{
+      const free=(st.slots||[]).filter(Boolean).length;
+      const slots=(st.slots||[]).map((x,i)=>`<div class="slot ${x?'free':'occupied'}">🔌 ${i+1}<br>${x?'FREE':'BUSY'}</div>`).join('');
+      return `<div class="station">
+        <div class="station-head"><b>🔋 ${st.name}</b><span class="${free?'available':'busy'}">${free}/${st.slots.length} ${free?'AVAILABLE':'FULL'}</span></div>
+        <small>📍 ${st.address||''}</small><br><small>💰 ${st.charge||'As displayed'}</small>
+        <div class="slots">${slots}</div>
+        <button class="blue" onclick="showRoute(chargingStations.find(x=>x.id==='${st.id}'),chargingStations.find(x=>x.id==='${st.id}').name,chargingStations.find(x=>x.id==='${st.id}').charge)">🗺️ VIEW EXACT ROUTE & TIME</button>
+      </div>`;
+    }).join('');
+    if(all.length>1) el.innerHTML+=`<button class="gray v15-show-more" onclick="v15ToggleCharging()">${chargingExpanded?'SHOW LESS':'SHOW MORE ('+(all.length-1)+')'}</button>`;
+  };
+  window.v15ToggleCharging=function(){chargingExpanded=!chargingExpanded;renderCharging();};
+
+  window.renderParking=function(){
+    const el=document.getElementById('parkingStations');
+    if(!el) return;
+    const all=stationDistanceSort(parkingStations);
+    const visible=parkingExpanded?all:all.slice(0,1);
+    const box=(arr,label)=>`<b>${label}: ${(arr||[]).filter(Boolean).length}/${(arr||[]).length} free</b><div class="slots">${(arr||[]).map((x,i)=>`<div class="slot ${x?'free':'occupied'}">${label[0]}${i+1}<br>${x?'FREE':'FULL'}</div>`).join('')}</div>`;
+    el.innerHTML=visible.map(st=>`<div class="station">
+      <div class="station-head"><b>🅿️ ${st.name}</b><span class="${st.ev?'available':'busy'}">${st.ev?'🔋 EV CHARGER AVAILABLE':'No EV CHARGER'}</span></div>
+      <small>📍 ${st.address||''}</small><br>
+      <small>📏 From you: <b>${userLatitude===null?'Location required':straightDistance(userLatitude,userLongitude,st.lat,st.lon).toFixed(2)+' km'}</b></small><br>
+      <small>💰 ${st.charge||'Charge not provided'}</small>
+      ${box(st.car,'Car')}${box(st.bike,'Bike')}
+      <button class="blue" onclick="showRoute(parkingStations.find(x=>x.id==='${st.id}'),parkingStations.find(x=>x.id==='${st.id}').name,parkingStations.find(x=>x.id==='${st.id}').charge)">🗺️ VIEW EXACT ROUTE & TIME</button>
+    </div>`).join('');
+    if(all.length>1) el.innerHTML+=`<button class="gray v15-show-more" onclick="v15ToggleParking()">${parkingExpanded?'SHOW LESS':'SHOW MORE ('+(all.length-1)+')'}</button>`;
+  };
+  window.v15ToggleParking=function(){parkingExpanded=!parkingExpanded;renderParking();};
+
+  /* ---------- 3) VOLUNTEER PARKING: EV CHARGER AVAILABLE OPTION ---------- */
+  window.showAddLocation=function(){
+    volunteerContent.innerHTML=`<div class="card">
+      <h2>➕ Add / Update Location</h2>
+      <select id="newType" onchange="v15ParkingTypeChanged()">
+        <option value="bus">🚌 Bus Stop</option>
+        <option value="auto">🛺 Auto / Rickshaw Stand</option>
+        <option value="water">💧 Drinking Water</option>
+        <option value="toilet">🚻 Toilet</option>
+        <option value="police">🚔 Police Help Centre</option>
+        <option value="hospital">🏥 Medical / Hospital</option>
+        <option value="charging">🔋 Phone Charging Station</option>
+        <option value="parking">🅿️ Parking</option>
+      </select>
+      <div id="v15EvRow" class="v15-ev-row"><label><input id="newEvAvailable" type="checkbox"> 🔋 EV CHARGER AVAILABLE AT THIS PARKING</label></div>
+      <input id="newName" placeholder="Location Name">
+      <input id="newAddress" placeholder="Address">
+      <input id="newLat" type="number" step="any" placeholder="Latitude">
+      <input id="newLon" type="number" step="any" placeholder="Longitude">
+      <input id="newCharge" placeholder="Charge / Free">
+      <button class="blue" onclick="v12UseGPS()">📍 USE MY CURRENT GPS</button>
+      <button class="green" onclick="v15SaveLocation()">💾 SAVE LOCATION</button>
+    </div>`;
+  };
+  window.v15ParkingTypeChanged=function(){
+    const row=document.getElementById('v15EvRow');
+    if(row) row.classList.toggle('show',document.getElementById('newType').value==='parking');
+  };
+  window.v15SaveLocation=function(){
+    const type=document.getElementById('newType').value;
+    const name=document.getElementById('newName').value.trim();
+    const address=document.getElementById('newAddress').value.trim();
+    const lat=parseFloat(document.getElementById('newLat').value);
+    const lon=parseFloat(document.getElementById('newLon').value);
+    const charge=document.getElementById('newCharge').value.trim();
+    const ev=!!document.getElementById('newEvAvailable')?.checked;
+    if(!name||!Number.isFinite(lat)||!Number.isFinite(lon)){alert('Enter location name and exact GPS coordinates.');return;}
+    if(type==='charging') chargingStations.push({id:'CHG'+Date.now(),name,address,lat,lon,slots:[1,1,1,1,0,0],charge:charge||'As displayed'});
+    else if(type==='parking') parkingStations.push({id:'PARK'+Date.now(),name,address,lat,lon,car:[1,1,1,0,0,0],bike:[1,1,1,1,0,0],ev,charge:charge||'As displayed'});
+    else services.push({id:'SER'+Date.now(),type,name,address,lat,lon,charge:charge||'Free / As applicable'});
+    save(); renderPublic(); alert('Location saved successfully.'); showAddLocation();
+  };
+
+  /* ---------- 4) SAFETY QR: compact HTTPS-style URL + larger, easier scan ---------- */
+  function compactSafetyURL(){
+    const contacts=(window.emergencyContacts&&currentUser)?(emergencyContacts[currentUser.id]||[]):[];
+    const q=new URLSearchParams();
+    q.set('safety','1');
+    q.set('id','SAFETY-'+(currentUser?.id||''));
+    q.set('name',currentUser?.name||'');
+    q.set('phone',currentUser?.phone||'');
+    if(userLatitude!==null&&userLongitude!==null){q.set('lat',Number(userLatitude).toFixed(5));q.set('lon',Number(userLongitude).toFixed(5));}
+    contacts.slice(0,2).forEach((x,i)=>{q.set('ec'+(i+1)+'n',x.name||'');q.set('ec'+(i+1)+'p',x.phone||'');});
+    let base;
+    if(location.protocol==='http:'||location.protocol==='https:'){
+      const u=new URL(location.href);u.search='';u.hash='';base=u.toString();
+    }else{
+      /* Local-file preview fallback. Replace this with the deployed HTTPS URL when hosting. */
+      base='https://kumbh-rakshak.app/';
+    }
+    return base+'?'+q.toString();
+  }
+
+  window.showSafetyRegistration=function(){
+    if(!currentUser){safetyRegistration.innerHTML='<div class="result danger">🔒 Please login or create an account first.</div>';return;}
+    const render=()=>{
+      const link=compactSafetyURL();
+      localStorage.setItem('kumbhSafetyProfileURL',link);
+      safetyRegistration.innerHTML=`<div class="result success">
+        <b>🛡️ Safety QR ready</b><br>
+        <small>Scan this QR to open the Kumbh Rakshak Safety Profile.</small>
+        <div id="mySafetyQR" class="v14-single-qr"></div>
+        <div class="v13-row">
+          <button class="blue" onclick="v14ShareSafetyProfile()">📤 SHARE SAFETY DETAILS</button>
+          <button class="gray" onclick="v14RefreshSafetyQR()">📍 REFRESH LOCATION & QR</button>
+        </div>
+        <div id="v14QRStatus" class="map-note"></div>
+      </div>`;
+      const host=document.getElementById('mySafetyQR'),status=document.getElementById('v14QRStatus');
+      try{
+        if(typeof QRCode==='undefined') throw new Error('QR library did not load');
+        host.innerHTML='';
+        const tmp=document.createElement('div');
+        new QRCode(tmp,{text:link,width:320,height:320,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel?QRCode.CorrectLevel.L:1});
+        setTimeout(()=>{
+          const chosen=tmp.querySelector('img')||tmp.querySelector('canvas');
+          if(!chosen){status.textContent='⚠️ QR could not be generated.';return;}
+          host.appendChild(chosen.cloneNode(true));
+          status.textContent='✅ One high-clarity QR code generated successfully.';
+        },80);
+      }catch(e){status.textContent='⚠️ QR could not be generated: '+e.message;}
+    };
+    if(userLatitude===null||userLongitude===null){
+      if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p=>{userLatitude=p.coords.latitude;userLongitude=p.coords.longitude;render();},render,{enableHighAccuracy:true,timeout:12000,maximumAge:5000});
+      else render();
+    }else render();
+  };
+
+  /* In-app scanner also understands a scanned Safety Profile URL. */
+  const previousHandle=window.handleQR;
+  window.handleQR=function(data){
+    try{
+      const u=new URL(data);
+      const q=u.searchParams;
+      if(q.get('safety')==='1'){
+        const name=q.get('name')||'Safety Band Owner',phone=q.get('phone')||'Not available';
+        const contacts=[1,2].map(i=>({n:q.get('ec'+i+'n'),p:q.get('ec'+i+'p')})).filter(x=>x.n||x.p);
+        const lat=q.get('lat'),lon=q.get('lon');
+        qrResult.innerHTML=`<div class="result success"><h3>🛡️ Safety Profile</h3><b>👤 ${name}</b><br>📞 <a href="tel:${phone}">${phone}</a><br>${contacts.length?'<h4>🚨 Emergency Contacts</h4>'+contacts.map(x=>`${x.n||'Contact'}: <a href="tel:${x.p||''}">${x.p||'Not available'}</a>`).join('<br>'):''}${lat&&lon?`<br><br><button class="green" onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}','_blank')">🧭 GET DIRECTIONS TO OWNER</button>`:''}</div>`;
+        return;
+      }
+    }catch(e){}
+    return previousHandle(data);
+  };
+
+  /* Refresh public cards after this final override is loaded. */
+  setTimeout(()=>{try{renderCharging();renderParking();moveTimetable();}catch(e){}},900);
+})();
+</script>
+
 </body>
 </html>
