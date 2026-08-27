@@ -32,22 +32,361 @@ footer{text-align:center;padding:24px;color:#777;font-size:13px}
 
 .gray{background:#e7ebf0;color:#263238}.gray:hover{filter:brightness(.96)}
 </style>
+
+<style id="unified-top-nav-layout">
+/* Single horizontal top navigation */
+#mainHeader{
+  width:100%;
+  min-height:82px;
+  margin:0;
+  padding:10px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  background:linear-gradient(135deg,#ff7900,#ffb000);
+  color:#fff;
+  text-align:left;
+  box-shadow:0 3px 12px rgba(0,0,0,.16);
+  position:relative;
+  z-index:200;
+}
+
+#mainHeader .brand-block{
+  min-width:0;
+  flex:1 1 auto;
+  cursor:pointer;
+}
+
+#mainHeader .brand-title{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:28px;
+  font-weight:800;
+  line-height:1.1;
+  white-space:nowrap;
+}
+
+#mainHeader .brand-sub,
+#mainHeader .brand-location{
+  margin-top:3px;
+  font-size:12px;
+  line-height:1.2;
+  opacity:.97;
+  white-space:nowrap;
+}
+
+#mainHeader .brand-location{
+  font-size:12px;
+}
+
+#mainHeader .top-navigation{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+  flex:0 0 auto;
+  min-width:max-content;
+}
+
+#mainHeader .top-navigation > .home,
+#mainHeader .language-btn{
+  margin:0 !important;
+}
+
+#mainHeader .home{
+  background:#e9edf2;
+  color:#263238;
+}
+
+#mainHeader .language-menu{
+  position:relative;
+  margin:0;
+  flex:0 0 auto;
+}
+
+#mainHeader .language-btn{
+  min-width:118px;
+  height:40px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  white-space:nowrap;
+}
+
+#mainHeader .language-dropdown{
+  position:absolute;
+  top:calc(100% + 8px);
+  right:0;
+  left:auto;
+  width:210px;
+  max-height:70vh;
+  overflow-y:auto;
+  background:#fff;
+  color:#222;
+  border:1px solid #dfe4ea;
+  border-radius:14px;
+  padding:8px;
+  box-shadow:0 12px 30px rgba(0,0,0,.2);
+  z-index:9999;
+}
+
+#mainHeader .language-dropdown button{
+  display:block;
+  width:100%;
+  margin:2px 0;
+  padding:10px 12px;
+  text-align:left;
+  background:#f4f6f8;
+  color:#222;
+  border-radius:9px;
+  font-size:14px;
+}
+
+#mainHeader .language-dropdown button:hover,
+#mainHeader .language-dropdown button.active-language{
+  background:#e7eef7;
+  color:var(--blue);
+}
+
+#mainHeader #accountCorner{
+  position:static !important;
+  top:auto !important;
+  right:auto !important;
+  margin:0 !important;
+  z-index:1 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  flex:0 0 auto !important;
+}
+
+#mainHeader #accountAvatar{
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  object-fit:cover;
+  background:#fff;
+  border:3px solid rgba(255,255,255,.95);
+  cursor:pointer;
+  box-shadow:0 5px 16px rgba(0,0,0,.22);
+}
+
+#mainHeader #accountBtn{
+  display:none !important;
+}
+
+/* Account panel stays attached to the viewport and does not disturb layout */
+#accountPanel{
+  position:fixed !important;
+  right:16px !important;
+  top:92px !important;
+  z-index:10000 !important;
+  width:min(360px,92vw) !important;
+  max-height:80vh !important;
+  overflow:auto !important;
+}
+
+/* The fixed admin controls remain bottom-right and horizontal */
+.floatAccess{
+  position:fixed;
+  right:14px;
+  bottom:14px;
+  z-index:9000;
+  display:flex;
+  flex-direction:row;
+  flex-wrap:nowrap;
+  gap:8px;
+}
+.floatAccess button{
+  margin:0;
+  white-space:nowrap;
+}
+
+/* Main page remains centered and unchanged */
+.container{
+  position:relative;
+  z-index:1;
+}
+
+@media(max-width:820px){
+  #mainHeader{
+    min-height:76px;
+    padding:9px 10px;
+    gap:10px;
+  }
+  #mainHeader .brand-title{
+    font-size:22px;
+  }
+  #mainHeader .brand-sub,
+  #mainHeader .brand-location{
+    font-size:10px;
+  }
+  #mainHeader .top-navigation{
+    gap:6px;
+  }
+  #mainHeader .language-btn{
+    min-width:108px;
+  }
+  #mainHeader #accountAvatar{
+    width:44px;
+    height:44px;
+  }
+}
+
+@media(max-width:600px){
+  #mainHeader{
+    min-height:70px;
+    padding:8px 9px;
+  }
+  #mainHeader .brand-title{
+    font-size:17px;
+    white-space:normal;
+  }
+  #mainHeader .brand-sub,
+  #mainHeader .brand-location{
+    display:none;
+  }
+  #mainHeader .top-navigation{
+    gap:5px;
+  }
+  #mainHeader .top-navigation > .home span{
+    display:none;
+  }
+  #mainHeader .language-btn{
+    min-width:98px;
+  }
+  #mainHeader #accountAvatar{
+    width:40px;
+    height:40px;
+  }
+  #accountPanel{
+    top:78px !important;
+    right:8px !important;
+  }
+  .floatAccess{
+    right:8px;
+    bottom:8px;
+  }
+}
+</style>
+
+
+<style id="profile-next-to-language-final">
+#mainHeader .top-navigation{
+  display:flex !important;
+  flex-direction:row !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  gap:8px !important;
+  flex-wrap:nowrap !important;
+  min-width:max-content !important;
+}
+
+#mainHeader .language-menu{
+  position:relative !important;
+  flex:0 0 auto !important;
+  margin:0 !important;
+}
+
+#mainHeader #accountCorner{
+  position:static !important;
+  display:flex !important;
+  flex:0 0 auto !important;
+  align-items:center !important;
+  justify-content:center !important;
+  margin:0 !important;
+  padding:0 !important;
+  width:auto !important;
+  height:auto !important;
+}
+
+#mainHeader #accountAvatar{
+  display:block !important;
+  width:48px !important;
+  height:48px !important;
+  margin:0 !important;
+  flex:0 0 48px !important;
+}
+
+#mainHeader #accountBtn{
+  display:none !important;
+}
+
+@media(max-width:820px){
+  #mainHeader .top-navigation{gap:6px !important}
+  #mainHeader #accountAvatar{
+    width:44px !important;
+    height:44px !important;
+    flex-basis:44px !important;
+  }
+}
+
+@media(max-width:600px){
+  #mainHeader .top-navigation{
+    gap:5px !important;
+  }
+  #mainHeader #accountAvatar{
+    width:40px !important;
+    height:40px !important;
+    flex-basis:40px !important;
+  }
+}
+</style>
+
+
+<style id="remove-bottom-profile">
+body > #accountCorner,
+body > #accountCorner + #accountPanel,
+#mainHeader ~ #accountCorner{
+  display:none !important;
+}
+</style>
+
 </head>
 <body>
 
-<header>
-<h1>🕉️ Kumbh Rakshak 2027</h1>
-<p class="sub" data-i18n="tagline">Smart Safety, Help & Navigation System</p>
-<p class="sub">Nashik – Trimbakeshwar</p>
-</header>
+<header id="mainHeader">
+  <div class="brand-block" onclick="goHome()" title="Kumbh Rakshak 2027">
+    <div class="brand-title">🕉️ <span>Kumbh Rakshak 2027</span></div>
+    <div class="brand-sub">Smart Safety, Help &amp; Navigation System</div>
+    <div class="brand-location">Nashik – Trimbakeshwar</div>
+  </div>
 
-<div class="topbar">
-<button class="home small" onclick="goHome()">🏠 <span data-i18n="home">Home</span></button>
-<div>
-<button class="gray small" onclick="setLanguage('en')">English</button>
-<button class="gray small" onclick="setLanguage('mr')">मराठी</button>
-</div>
-</div>
+  <nav class="top-navigation" aria-label="Main navigation">
+    <button class="home small" onclick="goHome()">🏠 <span data-i18n="home">Home</span></button>
+
+    <div class="language-menu">
+      <button class="gray small language-btn" onclick="toggleLanguageMenu()" aria-haspopup="true" aria-expanded="false">
+        🌐 <span id="selectedLanguage">Languages</span> ▾
+      </button>
+
+      <div id="languageDropdown" class="language-dropdown hidden">
+        <button onclick="setLanguage('en')">🇬🇧 English</button>
+        <button onclick="setLanguage('hi')">🇮🇳 हिन्दी</button>
+        <button onclick="setLanguage('mr')">मराठी</button>
+        <button onclick="setLanguage('ta')">தமிழ்</button>
+        <button onclick="setLanguage('te')">తెలుగు</button>
+        <button onclick="setLanguage('kn')">ಕನ್ನಡ</button>
+        <button onclick="setLanguage('gu')">ગુજરાતી</button>
+        <button onclick="setLanguage('bn')">বাংলা</button>
+        <button onclick="setLanguage('pa')">ਪੰਜਾਬੀ</button>
+        <button onclick="setLanguage('ml')">മലയാളം</button>
+        <button onclick="setLanguage('or')">ଓଡ଼ିଆ</button>
+        <button onclick="setLanguage('as')">অসমীয়া</button>
+        <button onclick="setLanguage('ur')">اردو</button>
+      </div>
+    </div>
+
+    </nav>
+    <div id="accountCorner" title="Open Profile &amp; Account">
+      <img id="accountAvatar" alt="Profile" onclick="toggleAccountPanel()">
+      <button id="accountBtn" aria-hidden="true">Account</button>
+    </div>
+
+  </header>
 
 <!-- Only visible on Home, never inside Public User section -->
 <div id="adminAccess" class="floatAccess">
@@ -224,10 +563,612 @@ footer{text-align:center;padding:24px;color:#777;font-size:13px}
 let lang=localStorage.getItem('kumbhLang')||'en';
 const T={
 en:{tagline:'Smart Safety, Help & Navigation System',home:'Home',welcome:'Welcome to Kumbh Rakshak',choose:'Choose how you want to use the system',guest:'CONTINUE AS GUEST',guestsub:'Navigation, nearby services, crowd, parking and charging',userlogin:'USER LOGIN / REGISTER',usersub:'Personal Safety Band and saved profile',account:'User Account',existing:'Existing User',newuser:'New User',login:'LOGIN',create:'CREATE ACCOUNT',phoneid:'Phone number or User ID',password:'Password',fullname:'Full name',phone:'Phone number',createpass:'Create password',mylocation:'My Exact Location',locinstruction:'Press the button to find your current location.',getlocation:'GET MY EXACT LOCATION',nearby:'Nearby Services',police:'Nearest Police',hospital:'Hospital',bus:'Bus Stand',auto:'Auto / Rickshaw',toilet:'Toilet',water:'Drinking Water',charging:'Phone Charging Stations',chargingnote:'Green = available charging points. Red = occupied. Select a station to see route, travel time and charges.',parking:'Car & Bike Parking',parkingnote:'Green = free spaces. Red = occupied. EV charger and parking charges are shown when available.',crowd:'Live Crowd Information',low:'🟢 Low Crowd',medium:'🟡 Moderate',high:'🔴 Very Crowded',scan:'Scan QR Code',qrnote:'Service QR works for everyone. Personal Safety Band QR requires login.',startscan:'START QR SCANNER',safety:'Safety Band',safetynote:'Register a child or elderly person’s Safety Band after logging in.',safetybtn:'REGISTER / VIEW MY SAFETY BAND',feedback:'Feedback',feedbackq:'How was your experience?',feedbackph:'Write your feedback...',submitfeedback:'SUBMIT FEEDBACK',emergency:'Emergency Assistance',sos:'SOS – I NEED HELP',share:'SHARE LOCATION'},
-mr:{tagline:'स्मार्ट सुरक्षा, मदत आणि नेव्हिगेशन प्रणाली',home:'मुख्यपृष्ठ',welcome:'कुंभ रक्षक मध्ये आपले स्वागत आहे',choose:'तुम्हाला प्रणाली कशी वापरायची आहे ते निवडा',guest:'लॉगिनशिवाय वापरा',guestsub:'नेव्हिगेशन, जवळच्या सेवा, गर्दी, पार्किंग आणि चार्जिंग',userlogin:'यूजर लॉगिन / नोंदणी',usersub:'वैयक्तिक सेफ्टी बँड आणि सेव्ह केलेली माहिती',account:'यूजर खाते',existing:'विद्यमान यूजर',newuser:'नवीन यूजर',login:'लॉगिन',create:'खाते तयार करा',phoneid:'फोन नंबर किंवा यूजर आयडी',password:'पासवर्ड',fullname:'पूर्ण नाव',phone:'फोन नंबर',createpass:'पासवर्ड तयार करा',mylocation:'माझे अचूक स्थान',locinstruction:'तुमचे सध्याचे स्थान शोधण्यासाठी बटण दाबा.',getlocation:'माझे अचूक स्थान शोधा',nearby:'जवळच्या सेवा',police:'जवळचे पोलीस',hospital:'रुग्णालय',bus:'बस स्थानक',auto:'ऑटो / रिक्षा',toilet:'स्वच्छतागृह',water:'पिण्याचे पाणी',charging:'मोबाईल चार्जिंग स्टेशन',chargingnote:'हिरवा = उपलब्ध. लाल = वापरात. मार्ग, वेळ आणि शुल्क पाहण्यासाठी स्टेशन निवडा.',parking:'कार आणि बाईक पार्किंग',parkingnote:'हिरवा = जागा उपलब्ध. लाल = जागा भरलेली. EV चार्जर आणि शुल्क उपलब्ध असल्यास दाखवले जाईल.',crowd:'थेट गर्दीची माहिती',low:'🟢 कमी गर्दी',medium:'🟡 मध्यम गर्दी',high:'🔴 खूप गर्दी',scan:'QR कोड स्कॅन करा',qrnote:'सर्व्हिस QR सर्वांसाठी आहे. वैयक्तिक सेफ्टी बँडसाठी लॉगिन आवश्यक आहे.',startscan:'QR स्कॅनर सुरू करा',safety:'सेफ्टी बँड',safetynote:'लॉगिन केल्यानंतर मुलांसाठी किंवा वृद्धांसाठी सेफ्टी बँड नोंदवा.',safetybtn:'माझा सेफ्टी बँड नोंदवा / पहा',feedback:'अभिप्राय',feedbackq:'तुमचा अनुभव कसा होता?',feedbackph:'तुमचा अभिप्राय लिहा...',submitfeedback:'अभिप्राय पाठवा',emergency:'आपत्कालीन मदत',sos:'SOS – मला मदत हवी आहे',share:'स्थान शेअर करा'}
+mr:{tagline:'स्मार्ट सुरक्षा, मदत आणि नेव्हिगेशन प्रणाली',home:'मुख्यपृष्ठ',welcome:'कुंभ रक्षक मध्ये आपले स्वागत आहे',choose:'तुम्हाला प्रणाली कशी वापरायची आहे ते निवडा',guest:'लॉगिनशिवाय वापरा',guestsub:'नेव्हिगेशन, जवळच्या सेवा, गर्दी, पार्किंग आणि चार्जिंग',userlogin:'यूजर लॉगिन / नोंदणी',usersub:'वैयक्तिक सेफ्टी बँड आणि सेव्ह केलेली माहिती',account:'यूजर खाते',existing:'विद्यमान यूजर',newuser:'नवीन यूजर',login:'लॉगिन',create:'खाते तयार करा',phoneid:'फोन नंबर किंवा यूजर आयडी',password:'पासवर्ड',fullname:'पूर्ण नाव',phone:'फोन नंबर',createpass:'पासवर्ड तयार करा',mylocation:'माझे अचूक स्थान',locinstruction:'तुमचे सध्याचे स्थान शोधण्यासाठी बटण दाबा.',getlocation:'माझे अचूक स्थान शोधा',nearby:'जवळच्या सेवा',police:'जवळचे पोलीस',hospital:'रुग्णालय',bus:'बस स्थानक',auto:'ऑटो / रिक्षा',toilet:'स्वच्छतागृह',water:'पिण्याचे पाणी',charging:'मोबाईल चार्जिंग स्टेशन',chargingnote:'हिरवा = उपलब्ध. लाल = वापरात. मार्ग, वेळ आणि शुल्क पाहण्यासाठी स्टेशन निवडा.',parking:'कार आणि बाईक पार्किंग',parkingnote:'हिरवा = जागा उपलब्ध. लाल = जागा भरलेली. EV चार्जर आणि शुल्क उपलब्ध असल्यास दाखवले जाईल.',crowd:'थेट गर्दीची माहिती',low:'🟢 कमी गर्दी',medium:'🟡 मध्यम गर्दी',high:'🔴 खूप गर्दी',scan:'QR कोड स्कॅन करा',qrnote:'सर्व्हिस QR सर्वांसाठी आहे. वैयक्तिक सेफ्टी बँडसाठी लॉगिन आवश्यक आहे.',startscan:'QR स्कॅनर सुरू करा',safety:'सेफ्टी बँड',safetynote:'लॉगिन केल्यानंतर मुलांसाठी किंवा वृद्धांसाठी सेफ्टी बँड नोंदवा.',safetybtn:'माझा सेफ्टी बँड नोंदवा / पहा',feedback:'अभिप्राय',feedbackq:'तुमचा अनुभव कसा होता?',feedbackph:'तुमचा अभिप्राय लिहा...',submitfeedback:'अभिप्राय पाठवा',emergency:'आपत्कालीन मदत',sos:'SOS – मला मदत हवी आहे',share:'स्थान शेअर करा'},
+ta:{
+  tagline:'ஸ்மார்ட் பாதுகாப்பு, உதவி மற்றும் வழிகாட்டல் அமைப்பு',
+  home:'முகப்பு',
+  welcome:'கும்ப ரக்ஷக்கிற்கு வரவேற்கிறோம்',
+  choose:'நீங்கள் அமைப்பை எவ்வாறு பயன்படுத்த விரும்புகிறீர்கள் என்பதைத் தேர்ந்தெடுக்கவும்',
+  guest:'விருந்தினராக தொடரவும்',
+  guestsub:'வழிகாட்டல், அருகிலுள்ள சேவைகள், கூட்டம், பார்க்கிங் மற்றும் சார்ஜிங்',
+  userlogin:'பயனர் உள்நுழைவு / பதிவு',
+  usersub:'தனிப்பட்ட பாதுகாப்பு பேண்ட் மற்றும் சேமிக்கப்பட்ட சுயவிவரம்',
+  account:'பயனர் கணக்கு',
+  existing:'ஏற்கனவே உள்ள பயனர்',
+  newuser:'புதிய பயனர்',
+  login:'உள்நுழைவு',
+  create:'கணக்கை உருவாக்கவும்',
+  phoneid:'தொலைபேசி எண் அல்லது பயனர் ஐடி',
+  password:'கடவுச்சொல்',
+  fullname:'முழுப் பெயர்',
+  phone:'தொலைபேசி எண்',
+  createpass:'கடவுச்சொல்லை உருவாக்கவும்',
+  mylocation:'எனது சரியான இருப்பிடம்',
+  locinstruction:'உங்கள் தற்போதைய இருப்பிடத்தை அறிய பொத்தானை அழுத்தவும்.',
+  getlocation:'எனது சரியான இருப்பிடத்தை பெறவும்',
+  nearby:'அருகிலுள்ள சேவைகள்',
+  police:'அருகிலுள்ள காவல்துறை',
+  hospital:'மருத்துவமனை',
+  bus:'பேருந்து நிலையம்',
+  auto:'ஆட்டோ / ரிக்ஷா',
+  toilet:'கழிப்பறை',
+  water:'குடிநீர்',
+  charging:'தொலைபேசி சார்ஜிங் நிலையங்கள்',
+  chargingnote:'பச்சை = கிடைக்கும். சிவப்பு = பயன்பாட்டில். பாதை, நேரம் மற்றும் கட்டணத்தைப் பார்க்க நிலையத்தைத் தேர்ந்தெடுக்கவும்.',
+  parking:'கார் மற்றும் பைக் பார்க்கிங்',
+  parkingnote:'பச்சை = காலியிடம். சிவப்பு = நிரம்பியுள்ளது. கிடைத்தால் EV சார்ஜர் மற்றும் கட்டணம் காட்டப்படும்.',
+  crowd:'நேரடி கூட்டத் தகவல்',
+  low:'🟢 குறைந்த கூட்டம்',
+  medium:'🟡 மிதமான கூட்டம்',
+  high:'🔴 அதிக கூட்டம்',
+  scan:'QR குறியீட்டை ஸ்கேன் செய்யவும்',
+  qrnote:'சேவை QR அனைவருக்கும் பயன்படும். தனிப்பட்ட பாதுகாப்பு பேண்டிற்கு உள்நுழைவு தேவை.',
+  startscan:'QR ஸ்கேனரை தொடங்கவும்',
+  safety:'பாதுகாப்பு பேண்ட்',
+  safetynote:'உள்நுழைந்த பிறகு குழந்தை அல்லது முதியவருக்கான பாதுகாப்பு பேண்டைப் பதிவு செய்யவும்.',
+  safetybtn:'எனது பாதுகாப்பு பேண்டைப் பதிவு / பார்க்கவும்',
+  feedback:'கருத்து',
+  feedbackq:'உங்கள் அனுபவம் எப்படி இருந்தது?',
+  feedbackph:'உங்கள் கருத்தை எழுதவும்...',
+  submitfeedback:'கருத்தை சமர்ப்பிக்கவும்',
+  emergency:'அவசர உதவி',
+  sos:'SOS – எனக்கு உதவி வேண்டும்',
+  share:'இருப்பிடத்தைப் பகிரவும்'
+},
+
+te:{
+  tagline:'స్మార్ట్ భద్రత, సహాయం మరియు నావిగేషన్ వ్యవస్థ',
+  home:'హోమ్',
+  welcome:'కుంభ రక్షక్‌కు స్వాగతం',
+  choose:'మీరు వ్యవస్థను ఎలా ఉపయోగించాలనుకుంటున్నారో ఎంచుకోండి',
+  guest:'అతిథిగా కొనసాగండి',
+  guestsub:'నావిగేషన్, సమీప సేవలు, జనసమ్మర్ధం, పార్కింగ్ మరియు ఛార్జింగ్',
+  userlogin:'యూజర్ లాగిన్ / నమోదు',
+  usersub:'వ్యక్తిగత సేఫ్టీ బ్యాండ్ మరియు సేవ్ చేసిన ప్రొఫైల్',
+  account:'యూజర్ ఖాతా',
+  existing:'ఇప్పటికే ఉన్న యూజర్',
+  newuser:'కొత్త యూజర్',
+  login:'లాగిన్',
+  create:'ఖాతాను సృష్టించండి',
+  phoneid:'ఫోన్ నంబర్ లేదా యూజర్ ఐడి',
+  password:'పాస్‌వర్డ్',
+  fullname:'పూర్తి పేరు',
+  phone:'ఫోన్ నంబర్',
+  createpass:'పాస్‌వర్డ్ సృష్టించండి',
+  mylocation:'నా ఖచ్చితమైన స్థానం',
+  locinstruction:'మీ ప్రస్తుత స్థానాన్ని కనుగొనడానికి బటన్ నొక్కండి.',
+  getlocation:'నా ఖచ్చితమైన స్థానాన్ని పొందండి',
+  nearby:'సమీప సేవలు',
+  police:'సమీప పోలీస్',
+  hospital:'ఆసుపత్రి',
+  bus:'బస్ స్టాండ్',
+  auto:'ఆటో / రిక్షా',
+  toilet:'మరుగుదొడ్డి',
+  water:'తాగునీరు',
+  charging:'ఫోన్ ఛార్జింగ్ స్టేషన్లు',
+  chargingnote:'ఆకుపచ్చ = అందుబాటులో ఉంది. ఎరుపు = ఉపయోగంలో ఉంది. మార్గం, సమయం మరియు ఛార్జీలను చూడటానికి స్టేషన్‌ను ఎంచుకోండి.',
+  parking:'కారు మరియు బైక్ పార్కింగ్',
+  parkingnote:'ఆకుపచ్చ = ఖాళీ స్థలాలు. ఎరుపు = నిండిపోయింది. అందుబాటులో ఉంటే EV ఛార్జర్ మరియు ఛార్జీలు చూపబడతాయి.',
+  crowd:'ప్రత్యక్ష జనసమ్మర్ధ సమాచారం',
+  low:'🟢 తక్కువ జనసమ్మర్ధం',
+  medium:'🟡 మోస్తరు జనసమ్మర్ధం',
+  high:'🔴 అధిక జనసమ్మర్ధం',
+  scan:'QR కోడ్ స్కాన్ చేయండి',
+  qrnote:'సర్వీస్ QR అందరికీ పనిచేస్తుంది. వ్యక్తిగత సేఫ్టీ బ్యాండ్‌కు లాగిన్ అవసరం.',
+  startscan:'QR స్కానర్ ప్రారంభించండి',
+  safety:'సేఫ్టీ బ్యాండ్',
+  safetynote:'లాగిన్ అయిన తర్వాత పిల్లలు లేదా వృద్ధుల కోసం సేఫ్టీ బ్యాండ్ నమోదు చేయండి.',
+  safetybtn:'నా సేఫ్టీ బ్యాండ్‌ను నమోదు / చూడండి',
+  feedback:'అభిప్రాయం',
+  feedbackq:'మీ అనుభవం ఎలా ఉంది?',
+  feedbackph:'మీ అభిప్రాయాన్ని వ్రాయండి...',
+  submitfeedback:'అభిప్రాయం పంపండి',
+  emergency:'అత్యవసర సహాయం',
+  sos:'SOS – నాకు సహాయం కావాలి',
+  share:'స్థానాన్ని షేర్ చేయండి'
+},
+
+kn:{
+  tagline:'ಸ್ಮಾರ್ಟ್ ಸುರಕ್ಷತೆ, ಸಹಾಯ ಮತ್ತು ನ್ಯಾವಿಗೇಶನ್ ವ್ಯವಸ್ಥೆ',
+  home:'ಮುಖಪುಟ',
+  welcome:'ಕುಂಭ ರಕ್ಷಕ್‌ಗೆ ಸ್ವಾಗತ',
+  choose:'ನೀವು ವ್ಯವಸ್ಥೆಯನ್ನು ಹೇಗೆ ಬಳಸಲು ಬಯಸುತ್ತೀರಿ ಎಂಬುದನ್ನು ಆಯ್ಕೆಮಾಡಿ',
+  guest:'ಅತಿಥಿಯಾಗಿ ಮುಂದುವರಿಯಿರಿ',
+  guestsub:'ನ್ಯಾವಿಗೇಶನ್, ಹತ್ತಿರದ ಸೇವೆಗಳು, ಜನಸಂದಣಿ, ಪಾರ್ಕಿಂಗ್ ಮತ್ತು ಚಾರ್ಜಿಂಗ್',
+  userlogin:'ಬಳಕೆದಾರ ಲಾಗಿನ್ / ನೋಂದಣಿ',
+  usersub:'ವೈಯಕ್ತಿಕ ಸುರಕ್ಷತಾ ಬ್ಯಾಂಡ್ ಮತ್ತು ಉಳಿಸಿದ ಪ್ರೊಫೈಲ್',
+  account:'ಬಳಕೆದಾರ ಖಾತೆ',
+  existing:'ಅಸ್ತಿತ್ವದಲ್ಲಿರುವ ಬಳಕೆದಾರ',
+  newuser:'ಹೊಸ ಬಳಕೆದಾರ',
+  login:'ಲಾಗಿನ್',
+  create:'ಖಾತೆ ರಚಿಸಿ',
+  phoneid:'ಫೋನ್ ಸಂಖ್ಯೆ ಅಥವಾ ಬಳಕೆದಾರ ಐಡಿ',
+  password:'ಪಾಸ್‌ವರ್ಡ್',
+  fullname:'ಪೂರ್ಣ ಹೆಸರು',
+  phone:'ಫೋನ್ ಸಂಖ್ಯೆ',
+  createpass:'ಪಾಸ್‌ವರ್ಡ್ ರಚಿಸಿ',
+  mylocation:'ನನ್ನ ನಿಖರ ಸ್ಥಳ',
+  locinstruction:'ನಿಮ್ಮ ಪ್ರಸ್ತುತ ಸ್ಥಳವನ್ನು ಕಂಡುಹಿಡಿಯಲು ಬಟನ್ ಒತ್ತಿರಿ.',
+  getlocation:'ನನ್ನ ನಿಖರ ಸ್ಥಳ ಪಡೆಯಿರಿ',
+  nearby:'ಹತ್ತಿರದ ಸೇವೆಗಳು',
+  police:'ಹತ್ತಿರದ ಪೊಲೀಸ್',
+  hospital:'ಆಸ್ಪತ್ರೆ',
+  bus:'ಬಸ್ ನಿಲ್ದಾಣ',
+  auto:'ಆಟೋ / ರಿಕ್ಷಾ',
+  toilet:'ಶೌಚಾಲಯ',
+  water:'ಕುಡಿಯುವ ನೀರು',
+  charging:'ಫೋನ್ ಚಾರ್ಜಿಂಗ್ ಕೇಂದ್ರಗಳು',
+  chargingnote:'ಹಸಿರು = ಲಭ್ಯ. ಕೆಂಪು = ಬಳಕೆಯಲ್ಲಿದೆ. ಮಾರ್ಗ, ಸಮಯ ಮತ್ತು ಶುಲ್ಕ ನೋಡಲು ಕೇಂದ್ರವನ್ನು ಆಯ್ಕೆಮಾಡಿ.',
+  parking:'ಕಾರು ಮತ್ತು ಬೈಕ್ ಪಾರ್ಕಿಂಗ್',
+  parkingnote:'ಹಸಿರು = ಖಾಲಿ ಸ್ಥಳಗಳು. ಕೆಂಪು = ಭರ್ತಿಯಾಗಿದೆ. ಲಭ್ಯವಿದ್ದರೆ EV ಚಾರ್ಜರ್ ಮತ್ತು ಶುಲ್ಕ ತೋರಿಸಲಾಗುತ್ತದೆ.',
+  crowd:'ನೇರ ಜನಸಂದಣಿ ಮಾಹಿತಿ',
+  low:'🟢 ಕಡಿಮೆ ಜನಸಂದಣಿ',
+  medium:'🟡 ಮಧ್ಯಮ ಜನಸಂದಣಿ',
+  high:'🔴 ಹೆಚ್ಚು ಜನಸಂದಣಿ',
+  scan:'QR ಕೋಡ್ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ',
+  qrnote:'ಸೇವೆಯ QR ಎಲ್ಲರಿಗೂ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ. ವೈಯಕ್ತಿಕ ಸುರಕ್ಷತಾ ಬ್ಯಾಂಡ್‌ಗೆ ಲಾಗಿನ್ ಅಗತ್ಯ.',
+  startscan:'QR ಸ್ಕ್ಯಾನರ್ ಪ್ರಾರಂಭಿಸಿ',
+  safety:'ಸುರಕ್ಷತಾ ಬ್ಯಾಂಡ್',
+  safetynote:'ಲಾಗಿನ್ ಆದ ನಂತರ ಮಗು ಅಥವಾ ಹಿರಿಯರ ಸುರಕ್ಷತಾ ಬ್ಯಾಂಡ್ ನೋಂದಾಯಿಸಿ.',
+  safetybtn:'ನನ್ನ ಸುರಕ್ಷತಾ ಬ್ಯಾಂಡ್ ನೋಂದಾಯಿಸಿ / ವೀಕ್ಷಿಸಿ',
+  feedback:'ಪ್ರತಿಕ್ರಿಯೆ',
+  feedbackq:'ನಿಮ್ಮ ಅನುಭವ ಹೇಗಿತ್ತು?',
+  feedbackph:'ನಿಮ್ಮ ಪ್ರತಿಕ್ರಿಯೆ ಬರೆಯಿರಿ...',
+  submitfeedback:'ಪ್ರತಿಕ್ರಿಯೆ ಸಲ್ಲಿಸಿ',
+  emergency:'ತುರ್ತು ಸಹಾಯ',
+  sos:'SOS – ನನಗೆ ಸಹಾಯ ಬೇಕು',
+  share:'ಸ್ಥಳ ಹಂಚಿಕೊಳ್ಳಿ'
+},
+
+gu:{
+  tagline:'સ્માર્ટ સુરક્ષા, મદદ અને નેવિગેશન સિસ્ટમ',
+  home:'હોમ',
+  welcome:'કુંભ રક્ષકમાં આપનું સ્વાગત છે',
+  choose:'તમે સિસ્ટમનો ઉપયોગ કેવી રીતે કરવા માંગો છો તે પસંદ કરો',
+  guest:'મહેમાન તરીકે ચાલુ રાખો',
+  guestsub:'નેવિગેશન, નજીકની સેવાઓ, ભીડ, પાર્કિંગ અને ચાર્જિંગ',
+  userlogin:'યુઝર લોગિન / રજિસ્ટર',
+  usersub:'વ્યક્તિગત સેફ્ટી બેન્ડ અને સેવ કરેલી પ્રોફાઇલ',
+  account:'યુઝર એકાઉન્ટ',
+  existing:'હાલના યુઝર',
+  newuser:'નવા યુઝર',
+  login:'લોગિન',
+  create:'એકાઉન્ટ બનાવો',
+  phoneid:'ફોન નંબર અથવા યુઝર આઈડી',
+  password:'પાસવર્ડ',
+  fullname:'પૂરું નામ',
+  phone:'ફોન નંબર',
+  createpass:'પાસવર્ડ બનાવો',
+  mylocation:'મારું ચોક્કસ સ્થાન',
+  locinstruction:'તમારું વર્તમાન સ્થાન શોધવા માટે બટન દબાવો.',
+  getlocation:'મારું ચોક્કસ સ્થાન મેળવો',
+  nearby:'નજીકની સેવાઓ',
+  police:'નજીકની પોલીસ',
+  hospital:'હોસ્પિટલ',
+  bus:'બસ સ્ટેન્ડ',
+  auto:'ઓટો / રિક્ષા',
+  toilet:'શૌચાલય',
+  water:'પીવાનું પાણી',
+  charging:'ફોન ચાર્જિંગ સ્ટેશન',
+  chargingnote:'લીલો = ઉપલબ્ધ. લાલ = ઉપયોગમાં. માર્ગ, સમય અને ચાર્જ જોવા માટે સ્ટેશન પસંદ કરો.',
+  parking:'કાર અને બાઈક પાર્કિંગ',
+  parkingnote:'લીલો = ખાલી જગ્યા. લાલ = ભરેલું. ઉપલબ્ધ હોય તો EV ચાર્જર અને ચાર્જ બતાવવામાં આવશે.',
+  crowd:'લાઈવ ભીડ માહિતી',
+  low:'🟢 ઓછી ભીડ',
+  medium:'🟡 મધ્યમ ભીડ',
+  high:'🔴 ખૂબ ભીડ',
+  scan:'QR કોડ સ્કેન કરો',
+  qrnote:'સર્વિસ QR બધા માટે કાર્ય કરે છે. વ્યક્તિગત સેફ્ટી બેન્ડ માટે લોગિન જરૂરી છે.',
+  startscan:'QR સ્કેનર શરૂ કરો',
+  safety:'સેફ્ટી બેન્ડ',
+  safetynote:'લોગિન કર્યા પછી બાળક અથવા વૃદ્ધ વ્યક્તિ માટે સેફ્ટી બેન્ડ નોંધણી કરો.',
+  safetybtn:'મારું સેફ્ટી બેન્ડ રજિસ્ટર / જુઓ',
+  feedback:'પ્રતિસાદ',
+  feedbackq:'તમારો અનુભવ કેવો રહ્યો?',
+  feedbackph:'તમારો પ્રતિસાદ લખો...',
+  submitfeedback:'પ્રતિસાદ મોકલો',
+  emergency:'કટોકટી સહાય',
+  sos:'SOS – મને મદદ જોઈએ',
+  share:'સ્થાન શેર કરો'
+},
+
+bn:{
+  tagline:'স্মার্ট নিরাপত্তা, সহায়তা ও নেভিগেশন ব্যবস্থা',
+  home:'হোম',
+  welcome:'কুম্ভ রক্ষকে আপনাকে স্বাগতম',
+  choose:'আপনি কীভাবে সিস্টেমটি ব্যবহার করতে চান তা নির্বাচন করুন',
+  guest:'অতিথি হিসেবে চালিয়ে যান',
+  guestsub:'নেভিগেশন, নিকটবর্তী পরিষেবা, ভিড়, পার্কিং এবং চার্জিং',
+  userlogin:'ইউজার লগইন / রেজিস্টার',
+  usersub:'ব্যক্তিগত সেফটি ব্যান্ড এবং সংরক্ষিত প্রোফাইল',
+  account:'ইউজার অ্যাকাউন্ট',
+  existing:'বিদ্যমান ইউজার',
+  newuser:'নতুন ইউজার',
+  login:'লগইন',
+  create:'অ্যাকাউন্ট তৈরি করুন',
+  phoneid:'ফোন নম্বর বা ইউজার আইডি',
+  password:'পাসওয়ার্ড',
+  fullname:'পূর্ণ নাম',
+  phone:'ফোন নম্বর',
+  createpass:'পাসওয়ার্ড তৈরি করুন',
+  mylocation:'আমার সঠিক অবস্থান',
+  locinstruction:'আপনার বর্তমান অবস্থান জানতে বোতাম চাপুন।',
+  getlocation:'আমার সঠিক অবস্থান পান',
+  nearby:'নিকটবর্তী পরিষেবা',
+  police:'নিকটবর্তী পুলিশ',
+  hospital:'হাসপাতাল',
+  bus:'বাস স্ট্যান্ড',
+  auto:'অটো / রিকশা',
+  toilet:'শৌচাগার',
+  water:'পানীয় জল',
+  charging:'ফোন চার্জিং স্টেশন',
+  chargingnote:'সবুজ = উপলব্ধ। লাল = ব্যবহৃত হচ্ছে। রুট, সময় এবং চার্জ দেখতে স্টেশন নির্বাচন করুন।',
+  parking:'গাড়ি ও বাইক পার্কিং',
+  parkingnote:'সবুজ = খালি স্থান। লাল = পূর্ণ। উপলব্ধ থাকলে EV চার্জার এবং চার্জ দেখানো হবে।',
+  crowd:'লাইভ ভিড়ের তথ্য',
+  low:'🟢 কম ভিড়',
+  medium:'🟡 মাঝারি ভিড়',
+  high:'🔴 খুব বেশি ভিড়',
+  scan:'QR কোড স্ক্যান করুন',
+  qrnote:'সার্ভিস QR সকলের জন্য কাজ করে। ব্যক্তিগত সেফটি ব্যান্ডের জন্য লগইন প্রয়োজন।',
+  startscan:'QR স্ক্যানার শুরু করুন',
+  safety:'সেফটি ব্যান্ড',
+  safetynote:'লগইন করার পরে শিশু বা প্রবীণ ব্যক্তির জন্য সেফটি ব্যান্ড নিবন্ধন করুন।',
+  safetybtn:'আমার সেফটি ব্যান্ড নিবন্ধন / দেখুন',
+  feedback:'মতামত',
+  feedbackq:'আপনার অভিজ্ঞতা কেমন ছিল?',
+  feedbackph:'আপনার মতামত লিখুন...',
+  submitfeedback:'মতামত জমা দিন',
+  emergency:'জরুরি সহায়তা',
+  sos:'SOS – আমার সাহায্য দরকার',
+  share:'অবস্থান শেয়ার করুন'
+},
+
+pa:{
+  tagline:'ਸਮਾਰਟ ਸੁਰੱਖਿਆ, ਮਦਦ ਅਤੇ ਨੈਵੀਗੇਸ਼ਨ ਸਿਸਟਮ',
+  home:'ਹੋਮ',
+  welcome:'ਕੁੰਭ ਰਕਸ਼ਕ ਵਿੱਚ ਤੁਹਾਡਾ ਸਵਾਗਤ ਹੈ',
+  choose:'ਚੁਣੋ ਕਿ ਤੁਸੀਂ ਸਿਸਟਮ ਕਿਵੇਂ ਵਰਤਣਾ ਚਾਹੁੰਦੇ ਹੋ',
+  guest:'ਮਹਿਮਾਨ ਵਜੋਂ ਜਾਰੀ ਰੱਖੋ',
+  guestsub:'ਨੈਵੀਗੇਸ਼ਨ, ਨੇੜਲੀਆਂ ਸੇਵਾਵਾਂ, ਭੀੜ, ਪਾਰਕਿੰਗ ਅਤੇ ਚਾਰਜਿੰਗ',
+  userlogin:'ਯੂਜ਼ਰ ਲਾਗਇਨ / ਰਜਿਸਟਰ',
+  usersub:'ਨਿੱਜੀ ਸੇਫਟੀ ਬੈਂਡ ਅਤੇ ਸੇਵ ਕੀਤੀ ਪ੍ਰੋਫਾਈਲ',
+  account:'ਯੂਜ਼ਰ ਅਕਾਊਂਟ',
+  existing:'ਮੌਜੂਦਾ ਯੂਜ਼ਰ',
+  newuser:'ਨਵਾਂ ਯੂਜ਼ਰ',
+  login:'ਲਾਗਇਨ',
+  create:'ਅਕਾਊਂਟ ਬਣਾਓ',
+  phoneid:'ਫੋਨ ਨੰਬਰ ਜਾਂ ਯੂਜ਼ਰ ਆਈਡੀ',
+  password:'ਪਾਸਵਰਡ',
+  fullname:'ਪੂਰਾ ਨਾਮ',
+  phone:'ਫੋਨ ਨੰਬਰ',
+  createpass:'ਪਾਸਵਰਡ ਬਣਾਓ',
+  mylocation:'ਮੇਰੀ ਸਹੀ ਲੋਕੇਸ਼ਨ',
+  locinstruction:'ਆਪਣੀ ਮੌਜੂਦਾ ਲੋਕੇਸ਼ਨ ਲੱਭਣ ਲਈ ਬਟਨ ਦਬਾਓ।',
+  getlocation:'ਮੇਰੀ ਸਹੀ ਲੋਕੇਸ਼ਨ ਪ੍ਰਾਪਤ ਕਰੋ',
+  nearby:'ਨੇੜਲੀਆਂ ਸੇਵਾਵਾਂ',
+  police:'ਨੇੜਲੀ ਪੁਲਿਸ',
+  hospital:'ਹਸਪਤਾਲ',
+  bus:'ਬੱਸ ਸਟੈਂਡ',
+  auto:'ਆਟੋ / ਰਿਕਸ਼ਾ',
+  toilet:'ਟਾਇਲਟ',
+  water:'ਪੀਣ ਵਾਲਾ ਪਾਣੀ',
+  charging:'ਫੋਨ ਚਾਰਜਿੰਗ ਸਟੇਸ਼ਨ',
+  chargingnote:'ਹਰਾ = ਉਪਲਬਧ। ਲਾਲ = ਵਰਤੋਂ ਵਿੱਚ। ਰਸਤਾ, ਸਮਾਂ ਅਤੇ ਚਾਰਜ ਦੇਖਣ ਲਈ ਸਟੇਸ਼ਨ ਚੁਣੋ।',
+  parking:'ਕਾਰ ਅਤੇ ਬਾਈਕ ਪਾਰਕਿੰਗ',
+  parkingnote:'ਹਰਾ = ਖਾਲੀ ਥਾਵਾਂ। ਲਾਲ = ਭਰਿਆ ਹੋਇਆ। ਉਪਲਬਧ ਹੋਣ ਤੇ EV ਚਾਰਜਰ ਅਤੇ ਚਾਰਜ ਦਿਖਾਏ ਜਾਣਗੇ।',
+  crowd:'ਲਾਈਵ ਭੀੜ ਜਾਣਕਾਰੀ',
+  low:'🟢 ਘੱਟ ਭੀੜ',
+  medium:'🟡 ਦਰਮਿਆਨੀ ਭੀੜ',
+  high:'🔴 ਬਹੁਤ ਜ਼ਿਆਦਾ ਭੀੜ',
+  scan:'QR ਕੋਡ ਸਕੈਨ ਕਰੋ',
+  qrnote:'ਸਰਵਿਸ QR ਹਰ ਕਿਸੇ ਲਈ ਕੰਮ ਕਰਦਾ ਹੈ। ਨਿੱਜੀ ਸੇਫਟੀ ਬੈਂਡ ਲਈ ਲਾਗਇਨ ਲੋੜੀਂਦਾ ਹੈ।',
+  startscan:'QR ਸਕੈਨਰ ਸ਼ੁਰੂ ਕਰੋ',
+  safety:'ਸੇਫਟੀ ਬੈਂਡ',
+  safetynote:'ਲਾਗਇਨ ਕਰਨ ਤੋਂ ਬਾਅਦ ਬੱਚੇ ਜਾਂ ਬਜ਼ੁਰਗ ਲਈ ਸੇਫਟੀ ਬੈਂਡ ਰਜਿਸਟਰ ਕਰੋ।',
+  safetybtn:'ਮੇਰਾ ਸੇਫਟੀ ਬੈਂਡ ਰਜਿਸਟਰ / ਵੇਖੋ',
+  feedback:'ਫੀਡਬੈਕ',
+  feedbackq:'ਤੁਹਾਡਾ ਅਨੁਭਵ ਕਿਵੇਂ ਰਿਹਾ?',
+  feedbackph:'ਆਪਣਾ ਫੀਡਬੈਕ ਲਿਖੋ...',
+  submitfeedback:'ਫੀਡਬੈਕ ਭੇਜੋ',
+  emergency:'ਐਮਰਜੈਂਸੀ ਸਹਾਇਤਾ',
+  sos:'SOS – ਮੈਨੂੰ ਮਦਦ ਚਾਹੀਦੀ ਹੈ',
+  share:'ਲੋਕੇਸ਼ਨ ਸਾਂਝੀ ਕਰੋ'
+},
+
+ml:{
+  tagline:'സ്മാർട്ട് സുരക്ഷ, സഹായം, നാവിഗേഷൻ സംവിധാനം',
+  home:'ഹോം',
+  welcome:'കുംഭ രക്ഷകിലേക്ക് സ്വാഗതം',
+  choose:'നിങ്ങൾക്ക് സംവിധാനം എങ്ങനെ ഉപയോഗിക്കണമെന്ന് തിരഞ്ഞെടുക്കുക',
+  guest:'അതിഥിയായി തുടരുക',
+  guestsub:'നാവിഗേഷൻ, സമീപ സേവനങ്ങൾ, തിരക്ക്, പാർക്കിംഗ്, ചാർജിംഗ്',
+  userlogin:'യൂസർ ലോഗിൻ / രജിസ്റ്റർ',
+  usersub:'വ്യക്തിഗത സേഫ്റ്റി ബാൻഡും സംരക്ഷിച്ച പ്രൊഫൈലും',
+  account:'യൂസർ അക്കൗണ്ട്',
+  existing:'നിലവിലുള്ള യൂസർ',
+  newuser:'പുതിയ യൂസർ',
+  login:'ലോഗിൻ',
+  create:'അക്കൗണ്ട് സൃഷ്ടിക്കുക',
+  phoneid:'ഫോൺ നമ്പർ അല്ലെങ്കിൽ യൂസർ ഐഡി',
+  password:'പാസ്‌വേഡ്',
+  fullname:'പൂർണ്ണ പേര്',
+  phone:'ഫോൺ നമ്പർ',
+  createpass:'പാസ്‌വേഡ് സൃഷ്ടിക്കുക',
+  mylocation:'എന്റെ കൃത്യമായ സ്ഥാനം',
+  locinstruction:'നിങ്ങളുടെ നിലവിലെ സ്ഥാനം കണ്ടെത്താൻ ബട്ടൺ അമർത്തുക.',
+  getlocation:'എന്റെ കൃത്യമായ സ്ഥാനം നേടുക',
+  nearby:'സമീപ സേവനങ്ങൾ',
+  police:'സമീപ പോലീസ്',
+  hospital:'ആശുപത്രി',
+  bus:'ബസ് സ്റ്റാൻഡ്',
+  auto:'ഓട്ടോ / റിക്ഷ',
+  toilet:'ശുചിമുറി',
+  water:'കുടിവെള്ളം',
+  charging:'ഫോൺ ചാർജിംഗ് സ്റ്റേഷനുകൾ',
+  chargingnote:'പച്ച = ലഭ്യമാണ്. ചുവപ്പ് = ഉപയോഗത്തിലാണ്. വഴി, സമയം, നിരക്ക് കാണാൻ സ്റ്റേഷൻ തിരഞ്ഞെടുക്കുക.',
+  parking:'കാർ & ബൈക്ക് പാർക്കിംഗ്',
+  parkingnote:'പച്ച = ഒഴിവുള്ള സ്ഥലം. ചുവപ്പ് = നിറഞ്ഞു. ലഭ്യമെങ്കിൽ EV ചാർജറും നിരക്കും കാണിക്കും.',
+  crowd:'തത്സമയ തിരക്ക് വിവരങ്ങൾ',
+  low:'🟢 കുറഞ്ഞ തിരക്ക്',
+  medium:'🟡 മിതമായ തിരക്ക്',
+  high:'🔴 വളരെ കൂടുതൽ തിരക്ക്',
+  scan:'QR കോഡ് സ്കാൻ ചെയ്യുക',
+  qrnote:'സർവീസ് QR എല്ലാവർക്കും ഉപയോഗിക്കാം. വ്യക്തിഗത സേഫ്റ്റി ബാൻഡിന് ലോഗിൻ ആവശ്യമാണ്.',
+  startscan:'QR സ്കാനർ ആരംഭിക്കുക',
+  safety:'സേഫ്റ്റി ബാൻഡ്',
+  safetynote:'ലോഗിൻ ചെയ്ത ശേഷം കുട്ടിയുടെയോ മുതിർന്ന വ്യക്തിയുടെയോ സേഫ്റ്റി ബാൻഡ് രജിസ്റ്റർ ചെയ്യുക.',
+  safetybtn:'എന്റെ സേഫ്റ്റി ബാൻഡ് രജിസ്റ്റർ / കാണുക',
+  feedback:'അഭിപ്രായം',
+  feedbackq:'നിങ്ങളുടെ അനുഭവം എങ്ങനെയായിരുന്നു?',
+  feedbackph:'നിങ്ങളുടെ അഭിപ്രായം എഴുതുക...',
+  submitfeedback:'അഭിപ്രായം സമർപ്പിക്കുക',
+  emergency:'അടിയന്തര സഹായം',
+  sos:'SOS – എനിക്ക് സഹായം വേണം',
+  share:'സ്ഥാനം പങ്കിടുക'
+},
+
+or:{
+  tagline:'ସ୍ମାର୍ଟ ସୁରକ୍ଷା, ସହାୟତା ଏବଂ ନାଭିଗେସନ୍ ପ୍ରଣାଳୀ',
+  home:'ହୋମ୍',
+  welcome:'କୁମ୍ଭ ରକ୍ଷକକୁ ସ୍ୱାଗତ',
+  choose:'ଆପଣ କିପରି ସିଷ୍ଟମ୍ ବ୍ୟବହାର କରିବାକୁ ଚାହୁଁଛନ୍ତି ଚୟନ କରନ୍ତୁ',
+  guest:'ଅତିଥି ଭାବେ ଜାରି ରଖନ୍ତୁ',
+  guestsub:'ନାଭିଗେସନ୍, ନିକଟସ୍ଥ ସେବା, ଭିଡ଼, ପାର୍କିଂ ଏବଂ ଚାର୍ଜିଂ',
+  userlogin:'ୟୁଜର ଲଗଇନ / ରେଜିଷ୍ଟର',
+  usersub:'ବ୍ୟକ୍ତିଗତ ସେଫ୍ଟି ବ୍ୟାଣ୍ଡ ଏବଂ ସେଭ୍ କରାଯାଇଥିବା ପ୍ରୋଫାଇଲ୍',
+  account:'ୟୁଜର ଆକାଉଣ୍ଟ',
+  existing:'ବର୍ତ୍ତମାନର ୟୁଜର',
+  newuser:'ନୂତନ ୟୁଜର',
+  login:'ଲଗଇନ',
+  create:'ଆକାଉଣ୍ଟ ସୃଷ୍ଟି କରନ୍ତୁ',
+  phoneid:'ଫୋନ୍ ନମ୍ବର କିମ୍ବା ୟୁଜର ଆଇଡି',
+  password:'ପାସୱାର୍ଡ',
+  fullname:'ପୂରା ନାମ',
+  phone:'ଫୋନ୍ ନମ୍ବର',
+  createpass:'ପାସୱାର୍ଡ ସୃଷ୍ଟି କରନ୍ତୁ',
+  mylocation:'ମୋର ସଠିକ୍ ସ୍ଥାନ',
+  locinstruction:'ଆପଣଙ୍କ ବର୍ତ୍ତମାନ ସ୍ଥାନ ଖୋଜିବା ପାଇଁ ବଟନ୍ ଦବାନ୍ତୁ।',
+  getlocation:'ମୋର ସଠିକ୍ ସ୍ଥାନ ପାଆନ୍ତୁ',
+  nearby:'ନିକଟସ୍ଥ ସେବା',
+  police:'ନିକଟସ୍ଥ ପୋଲିସ',
+  hospital:'ହସ୍ପିଟାଲ',
+  bus:'ବସ୍ ଷ୍ଟାଣ୍ଡ',
+  auto:'ଅଟୋ / ରିକ୍ସା',
+  toilet:'ଶୌଚାଳୟ',
+  water:'ପାନୀୟ ଜଳ',
+  charging:'ଫୋନ୍ ଚାର୍ଜିଂ ଷ୍ଟେସନ୍',
+  chargingnote:'ସବୁଜ = ଉପଲବ୍ଧ। ଲାଲ = ବ୍ୟବହାରରେ। ରୁଟ୍, ସମୟ ଏବଂ ଶୁଳ୍କ ଦେଖିବା ପାଇଁ ଷ୍ଟେସନ୍ ବାଛନ୍ତୁ।',
+  parking:'କାର ଏବଂ ବାଇକ୍ ପାର୍କିଂ',
+  parkingnote:'ସବୁଜ = ଖାଲି ସ୍ଥାନ। ଲାଲ = ପୂର୍ଣ୍ଣ। ଉପଲବ୍ଧ ଥିଲେ EV ଚାର୍ଜର ଏବଂ ଶୁଳ୍କ ଦେଖାଯିବ।',
+  crowd:'ଲାଇଭ୍ ଭିଡ଼ ସୂଚନା',
+  low:'🟢 କମ୍ ଭିଡ଼',
+  medium:'🟡 ମଧ୍ୟମ ଭିଡ଼',
+  high:'🔴 ଅତ୍ୟଧିକ ଭିଡ଼',
+  scan:'QR କୋଡ୍ ସ୍କାନ୍ କରନ୍ତୁ',
+  qrnote:'ସର୍ଭିସ QR ସମସ୍ତଙ୍କ ପାଇଁ କାମ କରେ। ବ୍ୟକ୍ତିଗତ ସେଫ୍ଟି ବ୍ୟାଣ୍ଡ ପାଇଁ ଲଗଇନ ଆବଶ୍ୟକ।',
+  startscan:'QR ସ୍କାନର ଆରମ୍ଭ କରନ୍ତୁ',
+  safety:'ସେଫ୍ଟି ବ୍ୟାଣ୍ଡ',
+  safetynote:'ଲଗଇନ ପରେ ଶିଶୁ କିମ୍ବା ବୃଦ୍ଧଙ୍କ ପାଇଁ ସେଫ୍ଟି ବ୍ୟାଣ୍ଡ ରେଜିଷ୍ଟର କରନ୍ତୁ।',
+  safetybtn:'ମୋର ସେଫ୍ଟି ବ୍ୟାଣ୍ଡ ରେଜିଷ୍ଟର / ଦେଖନ୍ତୁ',
+  feedback:'ମତାମତ',
+  feedbackq:'ଆପଣଙ୍କ ଅନୁଭବ କେମିତି ଥିଲା?',
+  feedbackph:'ଆପଣଙ୍କ ମତାମତ ଲେଖନ୍ତୁ...',
+  submitfeedback:'ମତାମତ ଦାଖଲ କରନ୍ତୁ',
+  emergency:'ଜରୁରୀ ସହାୟତା',
+  sos:'SOS – ମୋତେ ସାହାଯ୍ୟ ଦରକାର',
+  share:'ସ୍ଥାନ ସେୟାର କରନ୍ତୁ'
+},
+
+as:{
+  tagline:'স্মাৰ্ট সুৰক্ষা, সহায় আৰু নেভিগেচন ব্যৱস্থা',
+  home:'হোম',
+  welcome:'কুম্ভ ৰক্ষকলৈ স্বাগতম',
+  choose:'আপুনি কেনেকৈ ব্যৱস্থাটো ব্যৱহাৰ কৰিব বিচাৰে বাছনি কৰক',
+  guest:'অতিথি হিচাপে আগবাঢ়ক',
+  guestsub:'নেভিগেচন, ওচৰৰ সেৱা, ভিৰ, পাৰ্কিং আৰু চাৰ্জিং',
+  userlogin:'ইউজাৰ লগইন / ৰেজিষ্টাৰ',
+  usersub:'ব্যক্তিগত ছেফটি বেণ্ড আৰু সংৰক্ষিত প্ৰফাইল',
+  account:'ইউজাৰ একাউণ্ট',
+  existing:'বৰ্তমানৰ ইউজাৰ',
+  newuser:'নতুন ইউজাৰ',
+  login:'লগইন',
+  create:'একাউণ্ট সৃষ্টি কৰক',
+  phoneid:'ফোন নম্বৰ বা ইউজাৰ আইডি',
+  password:'পাছৱৰ্ড',
+  fullname:'সম্পূৰ্ণ নাম',
+  phone:'ফোন নম্বৰ',
+  createpass:'পাছৱৰ্ড সৃষ্টি কৰক',
+  mylocation:'মোৰ সঠিক অৱস্থান',
+  locinstruction:'আপোনাৰ বৰ্তমান অৱস্থান বিচাৰিবলৈ বুটাম টিপক।',
+  getlocation:'মোৰ সঠিক অৱস্থান পাওক',
+  nearby:'ওচৰৰ সেৱাসমূহ',
+  police:'ওচৰৰ আৰক্ষী',
+  hospital:'হাস্পতাল',
+  bus:'বাছ ষ্টেণ্ড',
+  auto:'অটো / ৰিক্সা',
+  toilet:'শৌচাগাৰ',
+  water:'খোৱা পানী',
+  charging:'ফোন চাৰ্জিং ষ্টেচন',
+  chargingnote:'সেউজীয়া = উপলব্ধ। ৰঙা = ব্যৱহাৰত। পথ, সময় আৰু চাৰ্জ চাবলৈ ষ্টেচন বাছনি কৰক।',
+  parking:'কাৰ আৰু বাইক পাৰ্কিং',
+  parkingnote:'সেউজীয়া = খালী ঠাই। ৰঙা = পূৰ্ণ। উপলব্ধ হ’লে EV চাৰ্জাৰ আৰু চাৰ্জ দেখুওৱা হ’ব।',
+  crowd:'লাইভ ভিৰৰ তথ্য',
+  low:'🟢 কম ভিৰ',
+  medium:'🟡 মধ্যম ভিৰ',
+  high:'🔴 অত্যাধিক ভিৰ',
+  scan:'QR ক’ড স্কেন কৰক',
+  qrnote:'চাৰ্ভিচ QR সকলোৰে বাবে কাম কৰে। ব্যক্তিগত ছেফটি বেণ্ডৰ বাবে লগইন প্ৰয়োজন।',
+  startscan:'QR স্কেনাৰ আৰম্ভ কৰক',
+  safety:'ছেফটি বেণ্ড',
+  safetynote:'লগইন কৰাৰ পিছত শিশু বা বৃদ্ধ ব্যক্তিৰ বাবে ছেফটি বেণ্ড ৰেজিষ্টাৰ কৰক।',
+  safetybtn:'মোৰ ছেফটি বেণ্ড ৰেজিষ্টাৰ / চাওক',
+  feedback:'মতামত',
+  feedbackq:'আপোনাৰ অভিজ্ঞতা কেনেকুৱা আছিল?',
+  feedbackph:'আপোনাৰ মতামত লিখক...',
+  submitfeedback:'মতামত জমা দিয়ক',
+  emergency:'জৰুৰী সহায়',
+  sos:'SOS – মোক সহায় লাগে',
+  share:'অৱস্থান শ্বেয়াৰ কৰক'
+},
+
+ur:{
+  tagline:'اسمارٹ حفاظت، مدد اور نیویگیشن سسٹم',
+  home:'ہوم',
+  welcome:'کمبھ رکشک میں خوش آمدید',
+  choose:'منتخب کریں کہ آپ سسٹم کو کیسے استعمال کرنا چاہتے ہیں',
+  guest:'مہمان کے طور پر جاری رکھیں',
+  guestsub:'نیویگیشن، قریبی خدمات، ہجوم، پارکنگ اور چارجنگ',
+  userlogin:'یوزر لاگ ان / رجسٹر',
+  usersub:'ذاتی سیفٹی بینڈ اور محفوظ شدہ پروفائل',
+  account:'یوزر اکاؤنٹ',
+  existing:'موجودہ یوزر',
+  newuser:'نیا یوزر',
+  login:'لاگ ان',
+  create:'اکاؤنٹ بنائیں',
+  phoneid:'فون نمبر یا یوزر آئی ڈی',
+  password:'پاس ورڈ',
+  fullname:'پورا نام',
+  phone:'فون نمبر',
+  createpass:'پاس ورڈ بنائیں',
+  mylocation:'میرا درست مقام',
+  locinstruction:'اپنا موجودہ مقام معلوم کرنے کے لیے بٹن دبائیں۔',
+  getlocation:'میرا درست مقام حاصل کریں',
+  nearby:'قریبی خدمات',
+  police:'قریبی پولیس',
+  hospital:'ہسپتال',
+  bus:'بس اسٹینڈ',
+  auto:'آٹو / رکشا',
+  toilet:'ٹوائلٹ',
+  water:'پینے کا پانی',
+  charging:'فون چارجنگ اسٹیشن',
+  chargingnote:'سبز = دستیاب۔ سرخ = استعمال میں۔ راستہ، وقت اور چارجز دیکھنے کے لیے اسٹیشن منتخب کریں۔',
+  parking:'کار اور بائیک پارکنگ',
+  parkingnote:'سبز = خالی جگہ۔ سرخ = مکمل۔ دستیاب ہونے پر EV چارجر اور چارجز دکھائے جائیں گے۔',
+  crowd:'لائیو ہجوم کی معلومات',
+  low:'🟢 کم ہجوم',
+  medium:'🟡 درمیانہ ہجوم',
+  high:'🔴 بہت زیادہ ہجوم',
+  scan:'QR کوڈ اسکین کریں',
+  qrnote:'سروس QR سب کے لیے کام کرتا ہے۔ ذاتی سیفٹی بینڈ کے لیے لاگ ان ضروری ہے۔',
+  startscan:'QR اسکینر شروع کریں',
+  safety:'سیفٹی بینڈ',
+  safetynote:'لاگ ان کے بعد بچے یا بزرگ شخص کے لیے سیفٹی بینڈ رجسٹر کریں۔',
+  safetybtn:'میرا سیفٹی بینڈ رجسٹر / دیکھیں',
+  feedback:'رائے',
+  feedbackq:'آپ کا تجربہ کیسا رہا؟',
+  feedbackph:'اپنی رائے لکھیں...',
+  submitfeedback:'رائے جمع کریں',
+  emergency:'ہنگامی مدد',
+  sos:'SOS – مجھے مدد چاہیے',
+  share:'مقام شیئر کریں'
+}
 };
-function setLanguage(l){lang=l;localStorage.setItem('kumbhLang',l);document.documentElement.lang=l==='mr'?'mr':'en';applyLanguage()}
-function applyLanguage(){let d=T[lang];document.querySelectorAll('[data-i18n]').forEach(e=>e.textContent=d[e.dataset.i18n]||e.textContent);document.querySelectorAll('[data-i18n-placeholder]').forEach(e=>e.placeholder=d[e.dataset.i18nPlaceholder]||e.placeholder);renderPublic()}
+const languageNames = {
+  en:'English',
+  hi:'हिन्दी',
+  mr:'मराठी',
+  ta:'தமிழ்',
+  te:'తెలుగు',
+  kn:'ಕನ್ನಡ',
+  gu:'ગુજરાતી',
+  bn:'বাংলা',
+  pa:'ਪੰਜਾਬੀ',
+  ml:'മലയാളം',
+  or:'ଓଡ଼ିଆ',
+  as:'অসমীয়া',
+  ur:'اردو'
+};
+
+function toggleLanguageMenu(){
+  const dropdown = document.getElementById('languageDropdown');
+  const button = document.querySelector('#mainHeader .language-btn');
+  if(dropdown){
+    const opening = dropdown.classList.contains('hidden');
+    dropdown.classList.toggle('hidden');
+    if(button) button.setAttribute('aria-expanded', opening ? 'true' : 'false');
+  }
+}
+
+function setLanguage(l){
+  if(!T[l]) l = 'en';
+
+  lang = l;
+  localStorage.setItem('kumbhLang', lang);
+  document.documentElement.lang = lang;
+
+  const selected = document.getElementById('selectedLanguage');
+  if(selected) selected.textContent = languageNames[lang] || 'Languages';
+
+  const dropdown = document.getElementById('languageDropdown');
+  if(dropdown) dropdown.classList.add('hidden');
+  const languageButton = document.querySelector('#mainHeader .language-btn');
+  if(languageButton) languageButton.setAttribute('aria-expanded','false');
+
+  applyLanguage();
+
+  document.querySelectorAll('#languageDropdown button')
+    .forEach(btn => btn.classList.remove('active-language'));
+
+  const activeButton = document.querySelector(
+    `#languageDropdown button[onclick="setLanguage('${lang}')"]`
+  );
+
+  if(activeButton) activeButton.classList.add('active-language');
+}
+
+function applyLanguage(){
+  if(!T[lang]) lang = 'en';
+
+  const d = T[lang] || T.en;
+  document.documentElement.lang = lang;
+
+  const selected = document.getElementById('selectedLanguage');
+  if(selected) selected.textContent = languageNames[lang] || 'English';
+
+  document.querySelectorAll('[data-i18n]').forEach(e => {
+    const key = e.dataset.i18n;
+
+    if(d && d[key] !== undefined){
+      e.textContent = d[key];
+    } else if(T.en && T.en[key] !== undefined){
+      e.textContent = T.en[key];
+    }
+  });
+
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(e => {
+    const key = e.dataset.i18nPlaceholder;
+
+    if(d && d[key] !== undefined){
+      e.placeholder = d[key];
+    } else if(T.en && T.en[key] !== undefined){
+      e.placeholder = T.en[key];
+    }
+  });
+
+  if(typeof renderPublic === 'function') renderPublic();
+}
+
 applyLanguage();
 
 /* ---------------- Data ---------------- */
@@ -654,11 +1595,10 @@ setInterval(()=>{if(document.getElementById('publicPage')?.classList.contains('a
 <style>
 /* V5 account, profile and verified volunteer improvements */
 #accountCorner{
-  position:absolute;
-  top:12px;
-  right:16px;
-  z-index:50;
-  display:block;
+  position:static;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 #accountAvatar{width:48px;height:48px;border-radius:50%;object-fit:cover;background:#fff;border:3px solid rgba(255,255,255,.9);cursor:pointer;box-shadow:0 5px 16px rgba(0,0,0,.22);transition:transform .2s}
 #accountAvatar:hover{transform:scale(1.06)}
@@ -1170,7 +2110,47 @@ const _approveV11=approveVolunteer;approveVolunteer=function(id){_approveV11(id)
   padding:10px;
   margin-top:7px;
 }
+.language-menu{
+  position:relative;
+}
 
+.language-btn{
+  min-width:140px;
+}
+
+.language-dropdown{
+  position:absolute;
+  right:0;
+  top:calc(100% + 8px);
+  width:210px;
+  max-height:70vh;
+  overflow-y:auto;
+  background:#fff;
+  border-radius:15px;
+  box-shadow:0 8px 25px rgba(0,0,0,.18);
+  padding:8px;
+  z-index:9999;
+}
+
+.language-dropdown button{
+  width:100%;
+  margin:2px 0;
+  padding:11px 13px;
+  text-align:left;
+  background:#f4f6f8;
+  color:#222;
+  border-radius:9px;
+  font-size:15px;
+}
+
+.language-dropdown button:hover{
+  background:#e4e9ef;
+}
+
+.language-dropdown button.active-language{
+  background:#1769b0;
+  color:#fff;
+}
 </style>
 
 
