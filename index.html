@@ -338,8 +338,9 @@ footer{text-align:center;padding:24px;color:#777;font-size:13px}
 
 
 <style id="remove-bottom-profile">
+/* Hide only duplicate profile icons outside the main header.
+   The account panel must remain available for JavaScript. */
 body > #accountCorner,
-body > #accountCorner + #accountPanel,
 #mainHeader ~ #accountCorner{
   display:none !important;
 }
@@ -1619,13 +1620,28 @@ setInterval(()=>{if(document.getElementById('publicPage')?.classList.contains('a
 .darkmode .volunteer-only-banner{background:#183d27}
 </style>
 
-<div id="accountCorner" title="Open Profile & Account">
-  <img id="accountAvatar" alt="Profile" onclick="toggleAccountPanel()">
-  <button id="accountBtn" aria-hidden="true">Account</button>
-</div>
 <div id="accountPanel" class="hiddenv5"></div>
 <div id="v5Modal" class="modalv5 hiddenv5"><div class="inner" id="v5ModalInner"></div></div>
 
+
+<style id="profile-popup-override">
+/* Final profile popup override */
+#accountPanel{position:fixed!important;inset:0!important;width:100%!important;max-width:none!important;max-height:none!important;overflow:auto!important;background:rgba(25,35,48,.35)!important;backdrop-filter:blur(5px);z-index:20000!important;padding:64px 20px 30px!important;display:flex;align-items:flex-start;justify-content:center;border-radius:0!important;box-shadow:none!important}
+#accountPanel.hiddenv5{display:none!important}
+.profile-popup-card{width:min(450px,100%);background:rgba(255,255,255,.96);border-radius:24px;padding:30px 20px 20px;box-shadow:0 25px 60px rgba(0,0,0,.28);animation:profilePopup .25s ease}
+@keyframes profilePopup{from{opacity:0;transform:translateY(-20px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.profile-popup-title{display:flex;align-items:center;gap:12px;font-size:28px;font-weight:800;color:#303943;margin-bottom:24px}
+.profile-avatar-large{width:110px;height:110px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 12px;background:#dce4ef;border:1px solid #c7d1df}
+.profile-user-name{font-size:20px;font-weight:800;color:#303943;margin-top:8px}
+.profile-user-detail{color:#3f4954;font-size:16px;margin-top:3px}
+.volunteer-verified-box{background:#e1ebe7;border-radius:18px;padding:16px 18px;margin:10px 0 16px;color:#404a53;font-size:20px;line-height:1.45}
+.volunteer-verified-box small{font-size:16px;color:#4c5660}
+.profile-action-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.profile-action-grid button{margin:0!important;min-height:60px;font-size:17px;border-radius:16px;font-weight:800}
+.profile-close-btn{width:auto!important;min-width:105px;margin-top:12px!important;background:#e4e7eb!important;color:#20252b!important}
+.darkmode .profile-popup-card{background:#19212c;color:#edf2f7}.darkmode .profile-popup-title,.darkmode .profile-user-name{color:#edf2f7}.darkmode .profile-user-detail{color:#c9d3df}.darkmode .volunteer-verified-box{background:#183d27;color:#edf2f7}.darkmode .volunteer-verified-box small{color:#c9d3df}
+@media(max-width:600px){#accountPanel{padding:15px 10px!important;align-items:center}.profile-popup-card{padding:22px 15px 16px}.profile-popup-title{font-size:23px}.profile-action-grid{grid-template-columns:1fr}}
+</style>
 <script>
 /* ---------------- V5: account + verified volunteer ---------------- */
 function v5Current(){
@@ -1652,22 +1668,33 @@ function toggleAccountPanel(){
 }
 function closeV5Modal(){document.getElementById('v5Modal').classList.add('hiddenv5');document.getElementById('v5ModalInner').innerHTML='';}
 function openV5Modal(content){document.getElementById('v5ModalInner').innerHTML=content;document.getElementById('v5Modal').classList.remove('hiddenv5');}
+function closeAccountPanel(){
+  const panel=document.getElementById('accountPanel');
+  if(panel) panel.classList.add('hiddenv5');
+}
 function renderAccountPanel(){
   const p=document.getElementById('accountPanel'),u=v5Current();
   if(!u){
-    p.innerHTML='<h2>👤 Account</h2><p>Login to use personal features.</p><button class="purple" onclick="openPage(\'userLoginPage\');toggleAccountPanel()">LOGIN / CREATE ACCOUNT</button><button onclick="document.getElementById(\'accountPanel\').classList.add(\'hiddenv5\')">CLOSE</button>';
+    p.innerHTML=`<div class="profile-popup-card"><div class="profile-popup-title">👤 Account</div><p style="font-size:17px;color:#4b5560;">Login to use personal features.</p><button class="purple" onclick="openPage('userLoginPage');closeAccountPanel()">🔐 LOGIN / CREATE ACCOUNT</button><button class="profile-close-btn" onclick="closeAccountPanel()">CLOSE</button></div>`;
     return;
   }
   const isVol=!!volunteerSession;
-  p.innerHTML=`<h2>${isVol?'🦺 Volunteer Profile':'👤 My Profile'}</h2>
-    <img class="profile-preview" src="${u.profilePhoto||defaultAvatar(u.name)}">
-    <b>${u.name||u.volunteerId}</b><br><small>${u.email||u.phone||''}</small>
-    ${isVol?`<div class="volunteer-only-banner">🪪 Verified Volunteer<br><small>ID: ${u.volunteerId}</small></div>`:''}
-    <button class="blue" onclick="openProfileEditor()">✏️ EDIT PROFILE</button>
-    <button class="purple" onclick="openSettings()">⚙️ SETTINGS</button>
-    <button class="dark" onclick="logoutCurrentV5()">🚪 LOGOUT</button>
-    <button class="red" onclick="deleteMyAccount()">🗑️ DELETE ACCOUNT</button>
-    <button onclick="document.getElementById('accountPanel').classList.add('hiddenv5')">CLOSE</button>`;
+  const userName=u.name||u.volunteerId||'User';
+  const userDetail=u.email||u.phone||'';
+  p.innerHTML=`<div class="profile-popup-card">
+    <div class="profile-popup-title">${isVol?'🦺 Volunteer Profile':'👤 My Profile'}</div>
+    <img class="profile-avatar-large" src="${u.profilePhoto||defaultAvatar(userName)}" alt="${userName}">
+    <div class="profile-user-name">${userName}</div>
+    <div class="profile-user-detail">${userDetail}</div>
+    ${isVol?`<div class="volunteer-verified-box">🪪 Verified Volunteer<br><small>ID: ${u.volunteerId||'Not Available'}</small></div>`:''}
+    <div class="profile-action-grid">
+      <button class="blue" onclick="openProfileEditor()">🖊️ EDIT PROFILE</button>
+      <button class="purple" onclick="openSettings()">⚙️ SETTINGS</button>
+      <button class="dark" onclick="logoutCurrentV5()">🚪 LOGOUT</button>
+      <button class="red" onclick="deleteMyAccount()">🗑️ DELETE ACCOUNT</button>
+    </div>
+    <button class="profile-close-btn" onclick="closeAccountPanel()">CLOSE</button>
+  </div>`;
 }
 function logoutCurrentV5(){
   const isVol=!!volunteerSession;
