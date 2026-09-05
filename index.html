@@ -5839,5 +5839,429 @@ function v12StopBusTracking() {
 })();
 </script>
 
+
+
+
+<!-- =========================================================
+     KUMBH RAKSHAK - LIVE CROWD FLOW & PREDICTION
+     Sketch-inspired 4x4 operational crowd map
+     ========================================================= -->
+<style id="kumbhCrowdMapStyle">
+#kumbhLiveCrowdMap{
+  margin-top:16px;padding:14px;border:1px solid #dfe4ea;
+  border-radius:16px;background:#fff;
+}
+.kcm-toolbar{
+  display:flex;gap:8px;align-items:center;justify-content:center;
+  flex-wrap:wrap;margin:10px 0 13px;
+}
+.kcm-mode{
+  border:1px solid #cfd5dc!important;background:#f6f7f9!important;
+  color:#333!important;padding:7px 16px!important;border-radius:8px!important;
+  width:auto!important;margin:0!important;font-size:12px!important;
+}
+.kcm-mode.active{background:#333!important;color:#fff!important;border-color:#333!important}
+.kcm-real-map{
+  width:100%;height:430px;border:2px solid #333;border-radius:14px;
+  overflow:hidden;position:relative;z-index:1;
+}
+.kcm-map-status{
+  position:absolute;z-index:500;top:10px;left:10px;right:10px;
+  pointer-events:none;
+}
+.kcm-map-status span{
+  display:inline-block;background:rgba(255,255,255,.94);padding:6px 9px;
+  border-radius:8px;box-shadow:0 1px 5px rgba(0,0,0,.18);
+  font-size:11px;font-weight:700;
+}
+.kcm-legend{
+  display:flex;gap:12px;justify-content:center;flex-wrap:wrap;
+  margin:12px 0 5px;font-size:12px;
+}
+.kcm-legend span{display:inline-flex;align-items:center;gap:5px}
+.kcm-legend i{width:12px;height:12px;border-radius:50%;display:inline-block}
+.kcm-legend .red{background:#d92d20}.kcm-legend .yellow{background:#f5b700}.kcm-legend .green{background:#16a34a}
+.kcm-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:11px}
+.kcm-stat{background:#f5f6f8;border-radius:10px;padding:9px;text-align:center}
+.kcm-stat b{display:block;font-size:18px}.kcm-stat small{font-size:10px;color:#667085}
+.kcm-message{margin-top:10px;padding:11px;border-radius:10px;font-size:13px;line-height:1.45;background:#f4f5f7}
+.kcm-message.red{background:#ffe5e2}.kcm-message.yellow{background:#fff2c9}.kcm-message.green{background:#e4f7e9}
+.kcm-forecast{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:9px}
+.kcm-forecast div{padding:9px;background:#f8f9fa;border:1px solid #e1e5e9;border-radius:9px;font-size:12px}
+.kcm-forecast b{display:block;margin-bottom:3px}
+.kcm-note{font-size:11px;color:#667085;margin-top:9px;line-height:1.45}
+.kcm-dot{
+  width:18px;height:18px;border-radius:50%;border:3px solid #fff;
+  box-shadow:0 1px 5px rgba(0,0,0,.35);
+}
+.kcm-dot.red{background:#d92d20}.kcm-dot.yellow{background:#f5b700}.kcm-dot.green{background:#16a34a}
+.kcm-pilgrim-icon{
+  width:8px;height:8px;border-radius:50%;background:#222;
+  border:1px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4);
+}
+.kcm-place-label{
+  background:rgba(255,255,255,.94);border:1px solid #888;
+  border-radius:6px;padding:3px 6px;font-size:10px;font-weight:800;
+  box-shadow:0 1px 4px rgba(0,0,0,.2);
+}
+@media(max-width:600px){
+  .kcm-real-map{height:350px}
+  .kcm-stats{grid-template-columns:repeat(2,1fr)}
+  .kcm-forecast{grid-template-columns:1fr}
+}
+</style>
+
+<script id="kumbhCrowdMapScript">
+(function(){
+'use strict';
+
+const KCM_KEY='kumbhCrowdPilgrimsFinal';
+const KCM_HIST='kumbhCrowdMovementHistoryFinal';
+const KCM_STALE=15*60*1000;
+
+const KCM_PLACES=[
+ {id:'ramkund',name:'Ramkund',lat:19.9975,lon:73.7898},
+ {id:'panchavati',name:'Panchavati',lat:19.9930,lon:73.7850},
+ {id:'tapovan',name:'Tapovan',lat:20.00854,lon:73.81381},
+ {id:'kund',name:'Kund',lat:19.9952,lon:73.7881}
+];
+
+const KCM_BOUNDS={minLat:19.986,maxLat:20.012,minLon:73.778,maxLon:73.818};
+let kcmPeople=JSON.parse(localStorage.getItem(KCM_KEY)||'[]');
+let kcmHistory=JSON.parse(localStorage.getItem(KCM_HIST)||'[]');
+let kcmRealMap=null,kcmLayers=[],kcmMode=0;
+
+function kcmSave(){
+ localStorage.setItem(KCM_KEY,JSON.stringify(kcmPeople.slice(-300)));
+ localStorage.setItem(KCM_HIST,JSON.stringify(kcmHistory.slice(-100)));
+}
+function kcmDist(a,b,c,d){
+ const R=6371,p1=a*Math.PI/180,p2=c*Math.PI/180;
+ const dp=(c-a)*Math.PI/180,dl=(d-b)*Math.PI/180;
+ const x=Math.sin(dp/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;
+ return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+}
+function kcmBearing(a,b,c,d){
+ const p1=a*Math.PI/180,p2=c*Math.PI/180,dl=(d-b)*Math.PI/180;
+ const y=Math.sin(dl)*Math.cos(p2);
+ const x=Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl);
+ return (Math.atan2(y,x)*180/Math.PI+360)%360;
+}
+function kcmMove(lat,lon,bearing,speed,minutes){
+ const R=6371,d=speed*minutes/60,br=bearing*Math.PI/180;
+ const p1=lat*Math.PI/180,l1=lon*Math.PI/180;
+ const p2=Math.asin(Math.sin(p1)*Math.cos(d/R)+Math.cos(p1)*Math.sin(d/R)*Math.cos(br));
+ const l2=l1+Math.atan2(Math.sin(br)*Math.sin(d/R)*Math.cos(p1),Math.cos(d/R)-Math.sin(p1)*Math.sin(p2));
+ return {lat:p2*180/Math.PI,lon:l2*180/Math.PI};
+}
+function kcmCell(lat,lon){
+ const col=Math.max(0,Math.min(3,Math.floor((lon-KCM_BOUNDS.minLon)/(KCM_BOUNDS.maxLon-KCM_BOUNDS.minLon)*4)));
+ const row=Math.max(0,Math.min(3,3-Math.floor((lat-KCM_BOUNDS.minLat)/(KCM_BOUNDS.maxLat-KCM_BOUNDS.minLat)*4)));
+ return row*4+col;
+}
+function kcmSeed(){
+ if(kcmPeople.length)return;
+ const seed=[
+  [19.9967,73.7888,30,2.1],[19.9960,73.7878,42,2.3],[19.9952,73.7867,55,2.2],
+  [19.9938,73.7859,70,2.0],[19.9920,73.7862,100,2.4],[19.9910,73.7874,15,2.0],
+  [19.9895,73.7890,10,1.9],[19.9971,73.7915,250,2.3],[19.9985,73.7930,245,2.4],
+  [20.0060,73.8100,55,2.2],[20.0075,73.8120,45,2.1],[20.0090,73.8140,230,2.5],
+  [19.9940,73.7825,120,1.8],[19.9950,73.7840,110,2.0],[19.9990,73.7835,300,2.2],
+  [19.9890,73.7845,20,1.6],[19.9900,73.7910,205,2.1],[19.9920,73.7900,205,2.2]
+ ];
+ const now=Date.now();
+ kcmPeople=seed.map((s,i)=>({id:'DEMO-'+i,lat:s[0],lon:s[1],bearing:s[2],speed:s[3],updatedAt:now,source:'demo'}));
+ kcmSave();
+}
+function kcmCaptureGPS(){
+ if(typeof userLatitude==='undefined'||userLatitude===null||typeof userLongitude==='undefined'||userLongitude===null)return;
+ const lat=Number(userLatitude),lon=Number(userLongitude),now=Date.now();
+ const id=(typeof currentUser!=='undefined'&&currentUser?.id)||'CURRENT-DEVICE';
+ let p=kcmPeople.find(x=>x.id===id);
+ if(!p){
+   p={id,lat,lon,bearing:0,speed:0,updatedAt:now,source:'gps'};
+   kcmPeople.push(p);
+ }else{
+   const sec=Math.max(1,(now-(p.updatedAt||now))/1000);
+   const dist=kcmDist(p.lat,p.lon,lat,lon);
+   if(dist<1){
+     p.bearing=kcmBearing(p.lat,p.lon,lat,lon);
+     p.speed=Math.min(8,dist/(sec/3600));
+   }
+   p.lat=lat;p.lon=lon;p.updatedAt=now;p.source='gps';
+ }
+ kcmHistory.push({id,lat,lon,timestamp:now});
+ kcmHistory=kcmHistory.filter(x=>now-x.timestamp<30*60*1000);
+ kcmSave();
+}
+function kcmAdvanceDemo(){
+ const now=Date.now();
+ kcmPeople.forEach(p=>{
+   if(p.source!=='demo')return;
+   const min=Math.min(.6,(now-(p.updatedAt||now))/60000);
+   if(min<=0)return;
+   const target=KCM_PLACES[(parseInt(p.id.replace(/\D/g,''),10)||0)%KCM_PLACES.length];
+   const desired=kcmBearing(p.lat,p.lon,target.lat,target.lon);
+   const diff=((desired-p.bearing+540)%360)-180;
+   p.bearing=(p.bearing+Math.max(-12,Math.min(12,diff))+360)%360;
+   const n=kcmMove(p.lat,p.lon,p.bearing,p.speed,min);
+   p.lat=n.lat;p.lon=n.lon;p.updatedAt=now;
+ });
+ kcmSave();
+}
+function kcmActive(){
+ const now=Date.now();
+ return kcmPeople.filter(p=>now-(p.updatedAt||0)<KCM_STALE);
+}
+function kcmProjection(p,min){
+ return kcmMove(p.lat,p.lon,p.bearing||0,Math.max(.4,Math.min(8,p.speed||1.5)),min);
+}
+function kcmData(){
+ const people=kcmActive(),cur=new Array(16).fill(0),inc=new Array(16).fill(0);
+ people.forEach(p=>{
+   const c=kcmCell(p.lat,p.lon),future=kcmProjection(p,10),f=kcmCell(future.lat,future.lon);
+   cur[c]++;if(f!==c)inc[f]++;
+ });
+ return {people,cur,inc};
+}
+function kcmState(cur,inc,i){
+ const score=cur[i]+inc[i]*.8;
+ if(cur[i]>=3||score>=4)return'red';
+ if(inc[i]>=1||score>=1.5)return'yellow';
+ return'green';
+}
+function kcmForecast(data,min){
+ const c=new Array(16).fill(0);
+ data.people.forEach(p=>{
+   const q=kcmProjection(p,min);
+   c[kcmCell(q.lat,q.lon)]++;
+ });
+ return c;
+}
+function kcmClearLayers(){
+ if(!kcmRealMap)return;
+ kcmLayers.forEach(x=>{try{kcmRealMap.removeLayer(x)}catch(e){}});
+ kcmLayers=[];
+}
+function kcmCircle(lat,lon,state,radius,count,incoming){
+ const color=state==='red'?'#d92d20':state==='yellow'?'#f5b700':'#16a34a';
+ const marker=L.circleMarker([lat,lon],{
+   radius:Math.max(9,Math.min(18,9+count*1.5)),
+   color:'#fff',weight:3,fillColor:color,fillOpacity:.92
+ }).bindPopup(`<b>${state==='red'?'🔴 Current High Crowd':state==='yellow'?'🟡 Upcoming Crowd':'🟢 Low Crowd'}</b><br>Current: ${count}<br>Incoming: ${incoming}`);
+ kcmLayers.push(marker);marker.addTo(kcmRealMap);
+ if(state==='red'){
+   const halo=L.circle([lat,lon],{radius,stroke:false,fillColor:color,fillOpacity:.10});
+   kcmLayers.push(halo);halo.addTo(kcmRealMap);
+ }
+}
+function kcmDrawRealMap(data){
+ if(typeof L==='undefined')return;
+ const el=document.getElementById('kcmRealMap');
+ if(!el)return;
+
+ if(!kcmRealMap){
+   kcmRealMap=L.map(el,{zoomControl:true}).setView([19.9975,73.7898],14);
+   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+     maxZoom:19,
+     attribution:'© OpenStreetMap contributors'
+   }).addTo(kcmRealMap);
+   setTimeout(()=>kcmRealMap.invalidateSize(),100);
+ }
+
+ kcmClearLayers();
+
+ // 4x4 operational grid over the real geographic map.
+ const dLat=(KCM_BOUNDS.maxLat-KCM_BOUNDS.minLat)/4;
+ const dLon=(KCM_BOUNDS.maxLon-KCM_BOUNDS.minLon)/4;
+ for(let row=0;row<4;row++){
+   for(let col=0;col<4;col++){
+     const i=row*4+col,state=kcmState(data.cur,data.inc,i);
+     const color=state==='red'?'#d92d20':state==='yellow'?'#f5b700':'#16a34a';
+     const bounds=[
+       [KCM_BOUNDS.minLat+row*dLat,KCM_BOUNDS.minLon+col*dLon],
+       [KCM_BOUNDS.minLat+(row+1)*dLat,KCM_BOUNDS.minLon+(col+1)*dLon]
+     ];
+     const rect=L.rectangle(bounds,{
+       color:color,weight:1,fillColor:color,fillOpacity:.055,
+       dashArray:'4 4',interactive:false
+     });
+     kcmLayers.push(rect);rect.addTo(kcmRealMap);
+   }
+ }
+
+ // Important places.
+ KCM_PLACES.forEach(p=>{
+   const m=L.marker([p.lat,p.lon]).bindTooltip(p.name,{permanent:true,direction:'top',className:'kcm-place-label'});
+   kcmLayers.push(m);m.addTo(kcmRealMap);
+ });
+
+ // Individual pilgrim locations.
+ data.people.forEach(p=>{
+   const icon=L.divIcon({className:'',html:'<span class="kcm-pilgrim-icon"></span>',iconSize:[8,8],iconAnchor:[4,4]});
+   const m=L.marker([p.lat,p.lon],{icon,interactive:false,opacity:.82});
+   kcmLayers.push(m);m.addTo(kcmRealMap);
+ });
+
+ // Current density dots + predicted incoming dots.
+ for(let i=0;i<16;i++){
+   const state=kcmState(data.cur,data.inc,i);
+   if(state==='green' && data.cur[i]===0 && data.inc[i]===0)continue;
+
+   const row=Math.floor(i/4),col=i%4;
+   const lat=KCM_BOUNDS.minLat+(row+.5)*dLat;
+   const lon=KCM_BOUNDS.minLon+(col+.5)*dLon;
+   kcmCircle(lat,lon,state,180+data.cur[i]*35,data.cur[i],data.inc[i]);
+ }
+
+ // Draw directional movement lines toward the 10-minute projected positions.
+ data.people.forEach(p=>{
+   if(!p.speed || p.speed<.4)return;
+   const q=kcmProjection(p,10);
+   const line=L.polyline([[p.lat,p.lon],[q.lat,q.lon]],{
+     color:'#555',weight:2,dashArray:'5 5',opacity:.55
+   });
+   kcmLayers.push(line);line.addTo(kcmRealMap);
+   const arrow=L.marker([q.lat,q.lon],{
+     icon:L.divIcon({className:'',html:'<span style="font-size:16px;font-weight:900;color:#555">➤</span>',iconSize:[16,16],iconAnchor:[8,8]}),
+     interactive:false
+   });
+   kcmLayers.push(arrow);arrow.addTo(kcmRealMap);
+ });
+
+ // User's own GPS position.
+ if(typeof userLatitude!=='undefined' && userLatitude!==null){
+   const me=L.circleMarker([userLatitude,userLongitude],{
+     radius:7,color:'#fff',weight:3,fillColor:'#1264d8',fillOpacity:1
+   }).bindPopup('<b>📍 Your live location</b>');
+   kcmLayers.push(me);me.addTo(kcmRealMap);
+ }
+
+ setTimeout(()=>kcmRealMap.invalidateSize(),50);
+}
+function kcmRender(){
+ let card=[...document.querySelectorAll('#publicPage .card')].find(x=>x.textContent.includes('Live Crowd Information'));
+ if(!card)return;
+ let box=document.getElementById('kumbhLiveCrowdMap');
+ if(!box){box=document.createElement('div');box.id='kumbhLiveCrowdMap';card.appendChild(box)}
+
+ kcmSeed();kcmCaptureGPS();kcmAdvanceDemo();
+ const d=kcmData();
+ const red=d.cur.filter((v,i)=>kcmState(d.cur,d.inc,i)==='red').length;
+ const yellow=d.cur.filter((v,i)=>kcmState(d.cur,d.inc,i)==='yellow').length;
+ const green=16-red-yellow;
+ const overall=red?'red':yellow?'yellow':'green';
+ const msg=red
+  ? '🔴 High crowd is currently present. Red dots show areas with high current density.'
+  : yellow
+  ? '🟡 Crowd is moving toward some areas. Yellow dots show predicted incoming crowd.'
+  : '🟢 Most mapped areas are currently low-crowd.';
+
+ const f5=kcmForecast(d,5),f10=kcmForecast(d,10);
+ const max5=Math.max(...f5),max10=Math.max(...f10);
+
+ if(!document.getElementById('kcmRealMap')){
+   box.innerHTML=`
+    <div class="kcm-toolbar">
+      <button type="button" class="kcm-mode active" data-mode="0">LIVE</button>
+      <button type="button" class="kcm-mode" data-mode="1">5 MIN FORECAST</button>
+      <button type="button" class="kcm-mode" data-mode="2">10 MIN FORECAST</button>
+    </div>
+    <div class="kcm-real-map" id="kcmRealMap">
+      <div class="kcm-map-status"><span>🗺️ REAL MAP • Live crowd overlay</span></div>
+    </div>
+    <div class="kcm-legend">
+      <span><i class="red"></i> Current high crowd</span>
+      <span><i class="yellow"></i> Upcoming crowd</span>
+      <span><i class="green"></i> Low crowd</span>
+      <span>⚫ Pilgrims</span>
+      <span>➤ Movement prediction</span>
+    </div>
+    <div class="kcm-stats">
+      <div class="kcm-stat"><small>📍 Pilgrims tracked</small><b>${d.people.length}</b></div>
+      <div class="kcm-stat"><small>🔴 High zones</small><b>${red}</b></div>
+      <div class="kcm-stat"><small>🟡 Upcoming zones</small><b>${yellow}</b></div>
+      <div class="kcm-stat"><small>🟢 Low zones</small><b>${green}</b></div>
+    </div>
+    <div class="kcm-message ${overall}">${msg}</div>
+    <div class="kcm-forecast">
+      <div><b>NOW</b>Current GPS positions and density.</div>
+      <div><b>+5 MIN</b>Peak projected zone: ${max5} pilgrims.</div>
+      <div><b>+10 MIN</b>Peak projected zone: ${max10} pilgrims.</div>
+    </div>
+    <div class="kcm-note">
+      The 4×4 grid is an operational overlay on the <b>real geographical map</b>.
+      Crowd prediction uses recent GPS position, direction and estimated speed.
+      Yellow appears when moving pilgrims are expected to enter a zone; red indicates
+      high current density.
+    </div>`;
+   box.querySelectorAll('.kcm-mode').forEach(btn=>{
+     btn.onclick=()=>{
+       box.querySelectorAll('.kcm-mode').forEach(x=>x.classList.remove('active'));
+       btn.classList.add('active');
+       kcmMode=Number(btn.dataset.mode);
+       kcmDrawRealMap(d);
+     };
+   });
+ }else{
+   box.querySelector('.kcm-stats').innerHTML=`
+     <div class="kcm-stat"><small>📍 Pilgrims tracked</small><b>${d.people.length}</b></div>
+     <div class="kcm-stat"><small>🔴 High zones</small><b>${red}</b></div>
+     <div class="kcm-stat"><small>🟡 Upcoming zones</small><b>${yellow}</b></div>
+     <div class="kcm-stat"><small>🟢 Low zones</small><b>${green}</b></div>`;
+   box.querySelector('.kcm-message').className='kcm-message '+overall;
+   box.querySelector('.kcm-message').textContent=msg;
+   box.querySelector('.kcm-forecast').innerHTML=`
+     <div><b>NOW</b>Current GPS positions and density.</div>
+     <div><b>+5 MIN</b>Peak projected zone: ${max5} pilgrims.</div>
+     <div><b>+10 MIN</b>Peak projected zone: ${max10} pilgrims.</div>`;
+ }
+ kcmDrawRealMap(d);
+}
+
+// Make crowd reports location-aware.
+const kcmOldReport=window.reportCrowd;
+window.reportCrowd=function(level){
+ try{
+   if(typeof userLatitude==='undefined'||userLatitude===null){
+     alert('Please turn on GET MY EXACT LOCATION before reporting crowd.');
+     if(typeof getLocation==='function')getLocation();
+     return;
+   }
+   if(typeof crowdReports!=='undefined'){
+     const place=(typeof nearestKumbhPlace==='function')?nearestKumbhPlace():KCM_PLACES[0];
+     crowdReports.push({
+       place:place.name,level,timestamp:Date.now(),
+       user:(typeof currentUser!=='undefined'&&currentUser?.id)||'GUEST',
+       lat:Number(userLatitude),lon:Number(userLongitude)
+     });
+     if(typeof save==='function')save();
+   }
+   kcmCaptureGPS();kcmRender();
+   if(typeof renderCrowdQuestion==='function')renderCrowdQuestion();
+   if(typeof renderCrowdSummary==='function')renderCrowdSummary();
+ }catch(e){
+   console.warn('Crowd report failed',e);
+   if(typeof kcmOldReport==='function')kcmOldReport(level);
+ }
+};
+
+const kcmOldStart=window.startLiveLocation;
+window.startLiveLocation=function(){
+ if(typeof kcmOldStart==='function')kcmOldStart();
+ setTimeout(kcmRender,900);
+};
+
+function kcmTick(){
+ if(document.getElementById('kumbhLiveCrowdMap'))kcmRender();
+}
+if(document.readyState==='loading'){
+ document.addEventListener('DOMContentLoaded',()=>{setTimeout(kcmRender,300);setInterval(kcmTick,30000)});
+}else{
+ setTimeout(kcmRender,300);setInterval(kcmTick,30000);
+}
+})();
+</script>
+
 </body>
 </html>
